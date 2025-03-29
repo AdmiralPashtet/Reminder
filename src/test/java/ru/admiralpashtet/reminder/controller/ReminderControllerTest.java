@@ -564,7 +564,7 @@ class ReminderControllerTest {
         // then
         perform.andDo(print())
                 .andExpect(status().isBadRequest())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.message", CoreMatchers.is("Page index must be greater than zero")));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message", CoreMatchers.is("Page index must not be less than zero")));
     }
 
     @Test
