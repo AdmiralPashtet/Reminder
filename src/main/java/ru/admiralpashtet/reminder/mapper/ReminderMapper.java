@@ -13,7 +13,7 @@ public interface ReminderMapper extends BaseMapper<Reminder, ReminderRequest, Re
 
     @Override
     @Mapping(source = "userId", target = "user", qualifiedByName = "idToUser")
-    Reminder toEntity(ReminderRequest reminderRequest);
+    Reminder toEntity(ReminderRequest reminderRequest, Long userId);
 
     @Override
     @Mapping(source = "user.id", target = "userId")

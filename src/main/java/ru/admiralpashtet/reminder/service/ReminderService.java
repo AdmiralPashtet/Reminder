@@ -8,12 +8,14 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 
 public interface ReminderService {
-    ReminderResponse create(ReminderRequest reminderRequest);
+    ReminderResponse create(ReminderRequest reminderRequest, Long userId);
 
-    Page<ReminderResponse> findAll(String searchQuery, LocalDate date, LocalTime time, String sortBy,
+    Page<ReminderResponse> findAll(Long userId, String searchQuery, LocalDate date, LocalTime time, String sortBy,
                                    boolean ascending, int page, int size);
 
-    ReminderResponse update(ReminderRequest reminderRequest, long id);
+    ReminderResponse update(ReminderRequest reminderRequest, Long reminderId, Long userId);
 
-    void deleteById(long reminderId);
+    void deleteById(Long reminderId, Long userId);
+
+    void remind();
 }

@@ -4,12 +4,15 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import ru.admiralpashtet.reminder.dto.ReminderRequest;
 import ru.admiralpashtet.reminder.dto.ReminderResponse;
+import ru.admiralpashtet.reminder.entity.CustomUserPrincipal;
 import ru.admiralpashtet.reminder.entity.Reminder;
 import ru.admiralpashtet.reminder.entity.User;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 public class DataUtils {
@@ -54,6 +57,46 @@ public class DataUtils {
         ));
     }
 
+    public static Page<Reminder> getPageOfRemindersForTwoUsersPersisted() {
+        return new PageImpl<>(List.of(
+                new Reminder(
+                        1L,
+                        "Reminder1: Meeting Notes",
+                        "Prepare notes for team meeting",
+                        LocalDateTime.of(2025, 3, 16, 9, 0),
+                        mockUser()
+                ),
+                new Reminder(
+                        2L,
+                        "Reminder4: Project Plan",
+                        "Draft plan for next meeting",
+                        LocalDateTime.of(2025, 3, 16, 14, 0),
+                        mockUser()
+                ),
+                new Reminder(
+                        3L,
+                        "Reminder2: Team Review",
+                        "Review team progress notes",
+                        LocalDateTime.of(2025, 3, 17, 11, 0),
+                        mockUser(2)
+                ),
+                new Reminder(
+                        4L,
+                        "Reminder5: Task List",
+                        "Update task list for project",
+                        LocalDateTime.of(2025, 3, 17, 15, 0),
+                        mockUser(2)
+                ),
+                new Reminder(
+                        5L,
+                        "Reminder3: Budget Plan",
+                        "Plan budget for next quarter",
+                        LocalDateTime.of(2025, 3, 18, 10, 0),
+                        mockUser(2)
+                )
+        ));
+    }
+
     /**
      * Повторяющиеся слова:
      * "meeting" встречается в title (ID: 1) и description (ID: 1, 2).
@@ -66,7 +109,7 @@ public class DataUtils {
      * "plan" найдет ID: 2, 5.
      * "team+notes" найдет ID: 1, 3.
      */
-    public static Page<ReminderResponse> getPageOfReminderResponses() {
+    public static Page<ReminderResponse> getPageOfReminderResponsesForOneUser() {
         return new PageImpl<>(List.of(
                 new ReminderResponse(
                         1L,
@@ -106,8 +149,48 @@ public class DataUtils {
         ));
     }
 
+    public static Page<ReminderResponse> getPageOfReminderResponsesForTwoUsers() {
+        return new PageImpl<>(List.of(
+                new ReminderResponse(
+                        1L,
+                        "Reminder1: Meeting Notes",
+                        "Prepare notes for team meeting",
+                        LocalDateTime.of(2025, 3, 16, 9, 0),
+                        1
+                ),
+                new ReminderResponse(
+                        2L,
+                        "Reminder4: Project Plan",
+                        "Draft plan for next meeting",
+                        LocalDateTime.of(2025, 3, 16, 14, 0),
+                        1
+                ),
+                new ReminderResponse(
+                        3L,
+                        "Reminder2: Team Review",
+                        "Review team progress notes",
+                        LocalDateTime.of(2025, 3, 17, 11, 0),
+                        2
+                ),
+                new ReminderResponse(
+                        4L,
+                        "Reminder5: Task List",
+                        "Update task list for project",
+                        LocalDateTime.of(2025, 3, 17, 15, 0),
+                        2
+                ),
+                new ReminderResponse(
+                        5L,
+                        "Reminder3: Budget Plan",
+                        "Plan budget for next quarter",
+                        LocalDateTime.of(2025, 3, 18, 10, 0),
+                        2
+                )
+        ));
+    }
+
     public static ReminderRequest getReminderRequest() {
-        return new ReminderRequest("Title", "Description", LocalDateTime.now().plusDays(1), 1);
+        return new ReminderRequest("Title", "Description", LocalDateTime.now().plusDays(1));
     }
 
     public static ReminderResponse getReminderResponse() {
@@ -122,8 +205,36 @@ public class DataUtils {
         return new Reminder(1L, "Title", "Description", LocalDateTime.now().plusDays(1), mockUser());
     }
 
-    private static User mockUser() {
+    public static User mockUser() {
         return new User(1L, "email@mail.com", "telegram");
+    }
+
+    public static User mockUser(long id) {
+        return new User(id, "email@mail.com", "telegram");
+    }
+
+    public static CustomUserPrincipal mockCustomUserPrincipal() {
+        User testUser = new User();
+        testUser.setId(1L);
+        testUser.setEmail("email@mail.com");
+        testUser.setTelegram("telegram");
+
+        Map<String, Object> attributes = new HashMap<>();
+        attributes.put("email", testUser.getEmail());
+
+        return new CustomUserPrincipal(testUser, attributes);
+    }
+
+    public static CustomUserPrincipal mockCustomUserPrincipal(long userId) {
+        User testUser = new User();
+        testUser.setId(userId);
+        testUser.setEmail("email@mail.com");
+        testUser.setTelegram("telegram");
+
+        Map<String, Object> attributes = new HashMap<>();
+        attributes.put("email", testUser.getEmail());
+
+        return new CustomUserPrincipal(testUser, attributes);
     }
 
     public static String generateString(int length) {
@@ -134,4 +245,6 @@ public class DataUtils {
         }
         return "";
     }
+
+
 }

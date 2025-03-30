@@ -1,15 +1,31 @@
-package ru.admiralpashtet.reminder.service;
+package ru.admiralpashtet.reminder.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.admiralpashtet.reminder.entity.User;
 import ru.admiralpashtet.reminder.exception.UserNotFoundException;
 import ru.admiralpashtet.reminder.repository.UserRepository;
+import ru.admiralpashtet.reminder.service.UserService;
+
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
+
+    @Override
+    public User createOrGetByEmail(String email) {
+        Optional<User> userOptional = userRepository.findByEmail(email);
+
+        if (userOptional.isPresent()) {
+            return userOptional.get();
+        } else {
+            User user = new User();
+            user.setEmail(email);
+            return userRepository.save(user);
+        }
+    }
 
     @Override
     public User findById(long id) {

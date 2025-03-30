@@ -17,3 +17,21 @@ spring:
     hiddenmethod:
       filter:
         enabled: true
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_OAUTH_CLIENT_ID}
+            client-secret: ${GOOGLE_OAUTH_SECRET}
+            scope:
+              - profile
+              - email
+          github:
+            client-id: ${GITHUB_OAUTH_CLIENT_ID}
+            client-secret: ${GITHUB_OAUTH_SECRET}
+            scope:
+              - user:email
+              - read:user
+urls:
+  github-fetch-email: https://api.github.com/user/emails
