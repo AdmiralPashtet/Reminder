@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import ru.admiralpashtet.reminder.entity.CustomUserPrincipal;
@@ -22,7 +23,7 @@ import java.util.Collections;
  */
 @Component
 @AllArgsConstructor
-public class JwtAuthorizationFilter extends OncePerRequestFilter {
+public class AuthenticationFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtil;
     private final UserService userService;
 
@@ -30,18 +31,16 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
-        String token = jwtUtil.extractTokenFromRequest(request);
-        if (token != null
-                && jwtUtil.isValid(token)
-        ) {
-            String email = jwtUtil.getEmailFromToken(token);
 
+        JwtAuthenticationToken token = (JwtAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
+
+        if (token != null) {
+            String email = token.getToken().getClaim("email");
             User user = userService.createOrGetByEmail(email);
-            CustomUserPrincipal customUserPrincipal = new CustomUserPrincipal(user, Collections.emptyMap());
+            CustomUserPrincipal userPrincipal = new CustomUserPrincipal(user);
 
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                    customUserPrincipal, null, Collections.emptyList()
-            );
+                    userPrincipal, null, Collections.emptyList());
             SecurityContextHolder.getContext().setAuthentication(authentication);
         }
         filterChain.doFilter(request, response);

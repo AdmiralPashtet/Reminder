@@ -11,7 +11,6 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
-import ru.admiralpashtet.reminder.entity.CustomUserPrincipal;
 import ru.admiralpashtet.reminder.entity.User;
 import ru.admiralpashtet.reminder.service.UserService;
 
@@ -47,7 +46,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         }
 
         User user = userService.createOrGetByEmail(email);
-        return new CustomUserPrincipal(user, oAuth2User.getAttributes());
+//        return new CustomUserPrincipal(user, oAuth2User.getAttributes());
+        return null;
     }
 
     /**
