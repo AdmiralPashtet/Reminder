@@ -33,5 +33,21 @@ spring:
             scope:
               - user:email
               - read:user
+      resourceserver:
+        jwt:
+          issuer-uri: https://accounts.google.com
+
+logging:
+  level:
+    org:
+      springframework:
+        security: DEBUG
+
+jwt:
+  secret: 4e5574e47927633deb03b6053ab1e02792377bb7b44e9192d8cafa77430297770f2e1592e43c473adced1021c85f04ab506263b3922caac0a62155f2e86991a7
+  expiration-ms: 3600000
+  github:
+    secret: e112c6ec04492b195b63cb398dc827604003094e821c52d78463dd56c5bcf5d9708e347e278741bc9bb52a78d4aed8755f5c041d73e56de006027d2c4af4a3d1
+
 urls:
   github-fetch-email: https://api.github.com/user/emails

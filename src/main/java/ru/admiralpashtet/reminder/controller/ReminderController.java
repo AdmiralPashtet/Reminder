@@ -37,7 +37,7 @@ public class ReminderController {
         return new ResponseEntity<>(updated, HttpStatus.OK);
     }
 
-    @GetMapping("/list")
+    @GetMapping
     public ResponseEntity<Page<ReminderResponse>> getAll(@RequestParam(name = "searchByText", required = false)
                                                          @Size(max = 255,
                                                                  message = "Search query must be less then 255 characters")
@@ -51,7 +51,8 @@ public class ReminderController {
                                                          @RequestParam(defaultValue = "0") int page,
                                                          @RequestParam(defaultValue = "10") int size,
                                                          @AuthenticationPrincipal CustomUserPrincipal principal) {
-        Page<ReminderResponse> reminderPage = reminderService.findAll(principal.getId(), searchByText, date, time, sortBy, ascending, page, size);
+        Page<ReminderResponse> reminderPage = reminderService.findAll(principal.getId(),
+                searchByText, date, time, sortBy, ascending, page, size);
         return new ResponseEntity<>(reminderPage, HttpStatus.OK);
     }
 

@@ -7,8 +7,6 @@ import ru.admiralpashtet.reminder.exception.UserNotFoundException;
 import ru.admiralpashtet.reminder.repository.UserRepository;
 import ru.admiralpashtet.reminder.service.UserService;
 
-import java.util.Optional;
-
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
@@ -16,15 +14,11 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User createOrGetByEmail(String email) {
-        Optional<User> userOptional = userRepository.findByEmail(email);
-
-        if (userOptional.isPresent()) {
-            return userOptional.get();
-        } else {
+        return userRepository.findByEmail(email).orElseGet(() -> {
             User user = new User();
             user.setEmail(email);
             return userRepository.save(user);
-        }
+        });
     }
 
     @Override

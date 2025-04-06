@@ -20,9 +20,9 @@ import java.util.Map;
 
 
 /**
- * Сервис обрабратывает данные, полученные от OAuth2-провайдера.
+ * Сервис обрабратывает данные, полученные от OAuth2-провайдера в момент авторизации.
  * Извлекаем email, который используется в user-service для избежания дублирования сущностей.
- * Результат оборачивается в CustomUserPrincipal для передачи в атрибутах userId.
+ * Результат оборачивается в CustomUserPrincipal и под капотом спрингом инжектится в Security Context.
  */
 @RequiredArgsConstructor
 @Service
@@ -31,6 +31,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     private final WebClient.Builder webClient;
     @Value("${urls.github-fetch-email}")
     private String githubFetchEmailUrl;
+
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
@@ -49,6 +50,10 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         return new CustomUserPrincipal(user, oAuth2User.getAttributes());
     }
 
+    /**
+     * У гитхаба есть особенность в возможности маркировать почту как приватную. Если почта приватная, то для её
+     * получения нужно дергать специальный эндпоинт, отправляю Access token в header.
+     */
     private String fetchEmailFromGithub(OAuth2UserRequest userRequest) {
         String token = userRequest.getAccessToken().getTokenValue();
         return webClient.build()

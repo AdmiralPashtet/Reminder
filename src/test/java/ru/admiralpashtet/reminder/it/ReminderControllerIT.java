@@ -180,7 +180,7 @@ class ReminderControllerIT extends BaseIT {
         reminderRepository.saveAll(list);
 
         // when
-        ResultActions perform = mockMvc.perform(get("/api/v1/reminders/list")
+        ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
                 .with(SecurityMockMvcRequestPostProcessors.oauth2Login()
                         .oauth2User(DataUtils.mockCustomUserPrincipal()))
                 .with(csrf())
@@ -211,7 +211,7 @@ class ReminderControllerIT extends BaseIT {
         reminderRepository.saveAll(allReminders);
 
         // when
-        ResultActions perform = mockMvc.perform(get("/api/v1/reminders/list")
+        ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
                 .with(SecurityMockMvcRequestPostProcessors.oauth2Login()
                         .oauth2User(DataUtils.mockCustomUserPrincipal()))
                 .with(csrf())
@@ -231,7 +231,7 @@ class ReminderControllerIT extends BaseIT {
         String searchKeyword = "nonexistent";
 
         // when
-        ResultActions perform = mockMvc.perform(get("/api/v1/reminders/list")
+        ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
                 .with(SecurityMockMvcRequestPostProcessors.oauth2Login()
                         .oauth2User(DataUtils.mockCustomUserPrincipal()))
                 .with(csrf())
@@ -260,7 +260,7 @@ class ReminderControllerIT extends BaseIT {
         reminderRepository.saveAll(allReminders);
 
         // when
-        ResultActions perform = mockMvc.perform(get("/api/v1/reminders/list")
+        ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
                 .with(SecurityMockMvcRequestPostProcessors.oauth2Login()
                         .oauth2User(DataUtils.mockCustomUserPrincipal()))
                 .with(csrf())
@@ -298,7 +298,7 @@ class ReminderControllerIT extends BaseIT {
         reminderRepository.saveAll(allReminders);
 
         // when
-        ResultActions perform = mockMvc.perform(get("/api/v1/reminders/list")
+        ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
                 .with(SecurityMockMvcRequestPostProcessors.oauth2Login()
                         .oauth2User(DataUtils.mockCustomUserPrincipal()))
                 .with(csrf())
@@ -329,7 +329,7 @@ class ReminderControllerIT extends BaseIT {
         reminderRepository.saveAll(allReminders);
 
         // when
-        ResultActions perform = mockMvc.perform(get("/api/v1/reminders/list")
+        ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
                 .with(SecurityMockMvcRequestPostProcessors.oauth2Login()
                         .oauth2User(DataUtils.mockCustomUserPrincipal()))
                 .with(csrf())
@@ -368,7 +368,7 @@ class ReminderControllerIT extends BaseIT {
         reminderRepository.saveAll(allReminders);
 
         // when
-        ResultActions perform = mockMvc.perform(get("/api/v1/reminders/list")
+        ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
                 .with(SecurityMockMvcRequestPostProcessors.oauth2Login()
                         .oauth2User(DataUtils.mockCustomUserPrincipal()))
                 .with(csrf())
@@ -407,7 +407,7 @@ class ReminderControllerIT extends BaseIT {
         reminderRepository.saveAll(allReminders);
 
         // when
-        ResultActions perform = mockMvc.perform(get("/api/v1/reminders/list")
+        ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
                 .with(SecurityMockMvcRequestPostProcessors.oauth2Login()
                         .oauth2User(DataUtils.mockCustomUserPrincipal()))
                 .with(csrf())
@@ -449,7 +449,7 @@ class ReminderControllerIT extends BaseIT {
         reminderRepository.saveAll(allReminders);
 
         // when
-        ResultActions perform = mockMvc.perform(get("/api/v1/reminders/list")
+        ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
                 .with(SecurityMockMvcRequestPostProcessors.oauth2Login()
                         .oauth2User(DataUtils.mockCustomUserPrincipal()))
                 .with(csrf())
@@ -491,7 +491,7 @@ class ReminderControllerIT extends BaseIT {
         reminderRepository.saveAll(allReminders);
 
         // when
-        ResultActions perform = mockMvc.perform(get("/api/v1/reminders/list")
+        ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
                 .with(SecurityMockMvcRequestPostProcessors.oauth2Login()
                         .oauth2User(DataUtils.mockCustomUserPrincipal()))
                 .with(csrf())
@@ -522,7 +522,7 @@ class ReminderControllerIT extends BaseIT {
         String invalidParam = "invalid";
 
         // when
-        ResultActions perform = mockMvc.perform(get("/api/v1/reminders/list")
+        ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
                 .with(SecurityMockMvcRequestPostProcessors.oauth2Login()
                         .oauth2User(DataUtils.mockCustomUserPrincipal()))
                 .with(csrf())
@@ -551,7 +551,7 @@ class ReminderControllerIT extends BaseIT {
         reminderRepository.saveAll(allReminders);
 
         // when
-        ResultActions perform = mockMvc.perform(get("/api/v1/reminders/list")
+        ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
                 .with(SecurityMockMvcRequestPostProcessors.oauth2Login()
                         .oauth2User(DataUtils.mockCustomUserPrincipal()))
                 .with(csrf())
@@ -583,7 +583,7 @@ class ReminderControllerIT extends BaseIT {
         int invalidPageNumber = -5;
 
         // when
-        ResultActions perform = mockMvc.perform(get("/api/v1/reminders/list")
+        ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
                 .with(SecurityMockMvcRequestPostProcessors.oauth2Login()
                         .oauth2User(DataUtils.mockCustomUserPrincipal()))
                 .with(csrf())
@@ -616,7 +616,7 @@ class ReminderControllerIT extends BaseIT {
         reminderRepository.saveAll(allReminders);
 
         // when
-        ResultActions perform = mockMvc.perform(get("/api/v1/reminders/list")
+        ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
                 .with(SecurityMockMvcRequestPostProcessors.oauth2Login()
                         .oauth2User(DataUtils.mockCustomUserPrincipal()))
                 .with(csrf())
@@ -645,7 +645,7 @@ class ReminderControllerIT extends BaseIT {
         int invalidSize = -10;
 
         // when
-        ResultActions perform = mockMvc.perform(get("/api/v1/reminders/list")
+        ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
                 .with(SecurityMockMvcRequestPostProcessors.oauth2Login()
                         .oauth2User(DataUtils.mockCustomUserPrincipal()))
                 .with(csrf())
@@ -665,7 +665,7 @@ class ReminderControllerIT extends BaseIT {
         String query = DataUtils.generateString(300);
 
         // when
-        ResultActions perform = mockMvc.perform(get("/api/v1/reminders/list")
+        ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
                 .with(SecurityMockMvcRequestPostProcessors.oauth2Login()
                         .oauth2User(DataUtils.mockCustomUserPrincipal()))
                 .with(csrf())
@@ -686,7 +686,7 @@ class ReminderControllerIT extends BaseIT {
 
         // when
 
-        ResultActions perform = mockMvc.perform(get("/api/v1/reminders/list")
+        ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
                 .with(SecurityMockMvcRequestPostProcessors.oauth2Login()
                         .oauth2User(DataUtils.mockCustomUserPrincipal()))
                 .with(csrf())
@@ -706,7 +706,7 @@ class ReminderControllerIT extends BaseIT {
         String invalidTime = "21-12";
 
         // when
-        ResultActions perform = mockMvc.perform(get("/api/v1/reminders/list")
+        ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
                 .with(SecurityMockMvcRequestPostProcessors.oauth2Login()
                         .oauth2User(DataUtils.mockCustomUserPrincipal()))
                 .with(csrf())
@@ -787,7 +787,7 @@ class ReminderControllerIT extends BaseIT {
         reminderRepository.saveAll(list);
 
         // when
-        ResultActions perform = mockMvc.perform(get("/api/v1/reminders/list")
+        ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
                 .with(SecurityMockMvcRequestPostProcessors.oauth2Login()
                         .oauth2User(DataUtils.mockCustomUserPrincipal(2L)))
                 .with(csrf())

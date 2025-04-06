@@ -13,5 +13,6 @@ public record ReminderRequest(
         String description,
         @NotNull(message = "Date and time cannot be null. ISO format expected")
         @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm")
+        // TODO: check with different timezone
         LocalDateTime remind) {
 }
