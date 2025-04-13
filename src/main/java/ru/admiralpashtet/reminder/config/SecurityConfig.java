@@ -1,7 +1,6 @@
 package ru.admiralpashtet.reminder.config;
 
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
@@ -13,22 +12,20 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
-import ru.admiralpashtet.reminder.security.AuthenticationFilter;
-import ru.admiralpashtet.reminder.service.impl.CustomOAuth2UserService;
+import ru.admiralpashtet.reminder.security.GithubOauth2AuthenticationFilter;
+import ru.admiralpashtet.reminder.security.GoogleOauth2AuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-    private final CustomOAuth2UserService customOAuth2UserService;
-    private final AuthenticationFilter authenticationFilter;
-    @Value("${jwt.github.secret}")
-    private String githubSecret;
+    private final GoogleOauth2AuthenticationFilter googleOauth2AuthenticationFilter;
+    private final GithubOauth2AuthenticationFilter githubOauth2AuthenticationFilter;
 
-    public SecurityConfig(CustomOAuth2UserService customOAuth2UserService,
-                          AuthenticationFilter authenticationFilter
+    public SecurityConfig(GoogleOauth2AuthenticationFilter googleOauth2AuthenticationFilter,
+                          GithubOauth2AuthenticationFilter githubOauth2AuthenticationFilter
     ) {
-        this.customOAuth2UserService = customOAuth2UserService;
-        this.authenticationFilter = authenticationFilter;
+        this.googleOauth2AuthenticationFilter = googleOauth2AuthenticationFilter;
+        this.githubOauth2AuthenticationFilter = githubOauth2AuthenticationFilter;
     }
 
     @Bean
@@ -44,39 +41,8 @@ public class SecurityConfig {
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
                 .oauth2ResourceServer(token -> token.jwt(Customizer.withDefaults()))
-                .addFilterAfter(authenticationFilter, BearerTokenAuthenticationFilter.class)
+                .addFilterBefore(githubOauth2AuthenticationFilter, BearerTokenAuthenticationFilter.class)
+                .addFilterAfter(googleOauth2AuthenticationFilter, BearerTokenAuthenticationFilter.class)
                 .build();
     }
-
-//    @Bean
-//    public JwtDecoder jwtDecoder() {
-//        // Декодер для Google (асимметричная подпись, RS256)
-//        NimbusJwtDecoder googleDecoder = NimbusJwtDecoder
-//                .withJwkSetUri("https://www.googleapis.com/oauth2/v3/certs")
-//                .jwsAlgorithm(SignatureAlgorithm.RS256)
-//                .build();
-//
-//        // Декодер для GitHub (с симметричной подписью, HS256)
-//        NimbusJwtDecoder githubDecoder = NimbusJwtDecoder
-//                .withSecretKey(new SecretKeySpec(githubSecret.getBytes(StandardCharsets.UTF_8), "HMACSHA256"))
-//                .build();
-//
-//        // Делегирующий декодер: сперва пробуем Google, затем GitHub.
-//        return token -> {
-//            System.err.println(token);
-//            try {
-//                Jwt jwt = googleDecoder.decode(token);
-//                if ("https://accounts.google.com".equals(jwt.getIssuer().toString())) {
-//                    return jwt;
-//                }
-//            } catch (Exception ignored) {
-//                // Если не получилось декодировать как Google, пробуем GitHub.
-//            }
-//            try {
-//                return githubDecoder.decode(token);
-//            } catch (Exception ex) {
-//                throw new JwtException("Не удалось декодировать JWT токен", ex);
-//            }
-//        };
-//    }
 }
