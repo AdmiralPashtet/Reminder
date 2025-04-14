@@ -85,6 +85,5 @@ public class ReminderServiceImpl implements ReminderService {
 
     @Override
     public void remind() {
-        // TODO: remind
     }
 }
