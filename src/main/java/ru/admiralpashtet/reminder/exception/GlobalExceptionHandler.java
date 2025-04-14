@@ -66,6 +66,14 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler
+    private ResponseEntity<ExceptionResponse> handleAccessDeniedException(AccessDeniedException exception, WebRequest request) {
+        ExceptionResponse response =
+                new ExceptionResponse(exception.getMessage(), LocalDateTime.now(), getPath(request));
+        log.error("An exception was caught: " + exception);
+        return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
+    }
+
+    @ExceptionHandler
     private ResponseEntity<ExceptionResponse> handleException(Exception exception, WebRequest request) {
         ExceptionResponse response =
                 new ExceptionResponse(exception.getMessage(), LocalDateTime.now(), getPath(request));
