@@ -13,12 +13,12 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+import ru.admiralpashtet.reminder.config.TestConfig;
 import ru.admiralpashtet.reminder.dto.ReminderRequest;
 import ru.admiralpashtet.reminder.dto.ReminderResponse;
 import ru.admiralpashtet.reminder.entity.CustomUserPrincipal;
@@ -30,31 +30,34 @@ import ru.admiralpashtet.reminder.mapper.ReminderMapperImpl;
 import ru.admiralpashtet.reminder.mapper.UserMapperHelper;
 import ru.admiralpashtet.reminder.repository.UserRepository;
 import ru.admiralpashtet.reminder.service.ReminderService;
+import ru.admiralpashtet.reminder.service.UserService;
 import ru.admiralpashtet.reminder.util.DataUtils;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.*;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(ReminderController.class)
-@Import({ReminderMapperImpl.class, UserMapperHelper.class})
+@Import({TestConfig.class, ReminderMapperImpl.class, UserMapperHelper.class})
 class ReminderControllerTest {
     @MockitoBean
     private ReminderService reminderService;
     @Autowired
     private MockMvc mockMvc;
     @MockitoBean
-    private UserRepository userRepository;      // mock for UserMapperHelper
+    private UserRepository userRepository;      // mock for UserMapperHelper@MockitoBean
+    @MockitoBean
+    private UserService userService;      // mock for SecurityConfig
     @Autowired
     private ObjectMapper objectMapper;
     @Autowired
@@ -72,9 +75,7 @@ class ReminderControllerTest {
 
         // when
         ResultActions perform = mockMvc.perform(post("/api/v1/reminders")
-                .with(SecurityMockMvcRequestPostProcessors.oauth2Login()
-                        .oauth2User(DataUtils.mockCustomUserPrincipal()))
-                .with(csrf())
+                .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(reminderRequest)));
 
@@ -104,9 +105,7 @@ class ReminderControllerTest {
 
         // when
         ResultActions perform = mockMvc.perform(MockMvcRequestBuilders.patch("/api/v1/reminders/" + id)
-                .with(SecurityMockMvcRequestPostProcessors.oauth2Login()
-                        .oauth2User(DataUtils.mockCustomUserPrincipal()))
-                .with(csrf())
+                .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(reminderRequest)));
 
@@ -132,9 +131,7 @@ class ReminderControllerTest {
 
         // when
         ResultActions perform = mockMvc.perform(MockMvcRequestBuilders.patch("/api/v1/reminders/" + id)
-                .with(SecurityMockMvcRequestPostProcessors.oauth2Login()
-                        .oauth2User(DataUtils.mockCustomUserPrincipal()))
-                .with(csrf())
+                .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(reminderRequest)));
 
@@ -155,9 +152,7 @@ class ReminderControllerTest {
 
         // when
         ResultActions perform = mockMvc.perform(MockMvcRequestBuilders.delete("/api/v1/reminders/" + id)
-                .with(SecurityMockMvcRequestPostProcessors.oauth2Login()
-                        .oauth2User(customUserPrincipal))
-                .with(csrf()));
+                .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser()));
 
         // then
         perform.andDo(print())
@@ -172,6 +167,7 @@ class ReminderControllerTest {
         Page<Reminder> entityPage = DataUtils.getPageOfRemindersPersisted();
         Page<ReminderResponse> responsePage = DataUtils.getPageOfReminderResponsesForOneUser();
 
+
         BDDMockito.when(reminderService.findAll(
                         isNotNull(),
                         isNull(),
@@ -185,9 +181,7 @@ class ReminderControllerTest {
 
         // when
         ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
-                .with(SecurityMockMvcRequestPostProcessors.oauth2Login()
-                        .oauth2User(DataUtils.mockCustomUserPrincipal()))
-                .with(csrf()));
+                .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser()));
 
         // then
         perform.andDo(print())
@@ -207,7 +201,8 @@ class ReminderControllerTest {
                 .map(reminderMapper::toResponseDTO)
                 .toList();
 
-        Page<ReminderResponse> filteredPage = new PageImpl<>(filteredReminders, PageRequest.of(0, 10), allReminders.size());
+        Page<ReminderResponse> filteredPage = new PageImpl<>(filteredReminders,
+                PageRequest.of(0, 10), allReminders.size());
 
         BDDMockito.when(reminderService.findAll(
                         isNotNull(),
@@ -222,9 +217,7 @@ class ReminderControllerTest {
 
         // when
         ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
-                .with(SecurityMockMvcRequestPostProcessors.oauth2Login()
-                        .oauth2User(DataUtils.mockCustomUserPrincipal()))
-                .with(csrf())
+                .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
                 .param("searchByText", searchKeyword));
 
         // then
@@ -238,6 +231,8 @@ class ReminderControllerTest {
     void givenNotExistsSearchQuery_whenFindAllCalledWithNotExistsSearchQuery_thenReturnBlankPage() throws Exception {
         // given
         String searchKeyword = "nonexistent";
+        Page<ReminderResponse> page = new PageImpl<>(Collections.emptyList(),
+                PageRequest.of(0, 10), 5);
 
         BDDMockito.when(reminderService.findAll(
                         isNotNull(),
@@ -248,13 +243,11 @@ class ReminderControllerTest {
                         eq(true),
                         eq(0),
                         eq(10)))
-                .thenReturn(Page.empty());
+                .thenReturn(page);
 
         // when
         ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
-                .with(SecurityMockMvcRequestPostProcessors.oauth2Login()
-                        .oauth2User(DataUtils.mockCustomUserPrincipal()))
-                .with(csrf())
+                .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
                 .param("searchByText", searchKeyword));
 
         // then
@@ -288,9 +281,7 @@ class ReminderControllerTest {
 
         // when
         ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
-                .with(SecurityMockMvcRequestPostProcessors.oauth2Login()
-                        .oauth2User(DataUtils.mockCustomUserPrincipal()))
-                .with(csrf())
+                .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
                 .param("searchByDate", date.toString()));
 
         // then
@@ -325,9 +316,7 @@ class ReminderControllerTest {
 
         // when
         ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
-                .with(SecurityMockMvcRequestPostProcessors.oauth2Login()
-                        .oauth2User(DataUtils.mockCustomUserPrincipal()))
-                .with(csrf())
+                .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
                 .param("searchByTime", time.toString()));
 
         // then
@@ -362,9 +351,7 @@ class ReminderControllerTest {
 
         // when
         ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
-                .with(SecurityMockMvcRequestPostProcessors.oauth2Login()
-                        .oauth2User(DataUtils.mockCustomUserPrincipal()))
-                .with(csrf())
+                .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
                 .param("searchByDate", dateTime.toLocalDate().toString())
                 .param("searchByTime", dateTime.toLocalTime().toString()));
 
@@ -412,9 +399,7 @@ class ReminderControllerTest {
 
         // when
         ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
-                .with(SecurityMockMvcRequestPostProcessors.oauth2Login()
-                        .oauth2User(DataUtils.mockCustomUserPrincipal()))
-                .with(csrf())
+                .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
                 .param("searchByText", searchKeyword)
                 .param("searchByDate", first.getRemind().toLocalDate().toString())
                 .param("searchByTime", first.getRemind().toLocalTime().toString())
@@ -458,9 +443,7 @@ class ReminderControllerTest {
 
         // when
         ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
-                .with(SecurityMockMvcRequestPostProcessors.oauth2Login()
-                        .oauth2User(DataUtils.mockCustomUserPrincipal()))
-                .with(csrf())
+                .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
                 .param("sort", sortBy)
                 .param("asc", String.valueOf(ascending)));
 
@@ -498,9 +481,7 @@ class ReminderControllerTest {
                 .thenReturn(sortedPage);
         // when
         ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
-                .with(SecurityMockMvcRequestPostProcessors.oauth2Login()
-                        .oauth2User(DataUtils.mockCustomUserPrincipal()))
-                .with(csrf())
+                .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
                 .param("sort", sortBy)
                 .param("asc", String.valueOf(ascending)));
 
@@ -538,9 +519,7 @@ class ReminderControllerTest {
                 .thenReturn(sortedPage);
         // when
         ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
-                .with(SecurityMockMvcRequestPostProcessors.oauth2Login()
-                        .oauth2User(DataUtils.mockCustomUserPrincipal()))
-                .with(csrf())
+                .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
                 .param("sort", sortBy)
                 .param("asc", String.valueOf(ascending)));
 
@@ -561,9 +540,7 @@ class ReminderControllerTest {
                 .willThrow(new IllegalArgumentException("Illegal argument in \"sortBy\" URI parameter. Expected: {title, description, remind}"));
         // when
         ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
-                .with(SecurityMockMvcRequestPostProcessors.oauth2Login()
-                        .oauth2User(DataUtils.mockCustomUserPrincipal()))
-                .with(csrf())
+                .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
                 .param("sort", invalidParam));
 
         // when  then
@@ -600,9 +577,7 @@ class ReminderControllerTest {
 
         // when
         ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
-                .with(SecurityMockMvcRequestPostProcessors.oauth2Login()
-                        .oauth2User(DataUtils.mockCustomUserPrincipal()))
-                .with(csrf())
+                .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
                 .param("sort", sortBy)
                 .param("asc", String.valueOf(ascending)));
 
@@ -625,9 +600,7 @@ class ReminderControllerTest {
                 .willThrow(new IllegalArgumentException("Page index must not be less than zero"));
         // when
         ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
-                .with(SecurityMockMvcRequestPostProcessors.oauth2Login()
-                        .oauth2User(DataUtils.mockCustomUserPrincipal()))
-                .with(csrf())
+                .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
                 .param("page", String.valueOf(invalidPageNumber)));
 
         // then
@@ -667,9 +640,7 @@ class ReminderControllerTest {
 
         // when
         ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
-                .with(SecurityMockMvcRequestPostProcessors.oauth2Login()
-                        .oauth2User(DataUtils.mockCustomUserPrincipal()))
-                .with(csrf())
+                .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
                 .param("page", String.valueOf(page))
                 .param("size", String.valueOf(size)));
 
@@ -691,9 +662,7 @@ class ReminderControllerTest {
                 .willThrow(new IllegalArgumentException("Page size must not be less than one"));
         // when
         ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
-                .with(SecurityMockMvcRequestPostProcessors.oauth2Login()
-                        .oauth2User(DataUtils.mockCustomUserPrincipal()))
-                .with(csrf())
+                .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
                 .param("size", String.valueOf(invalidSize)));
 
         // then
@@ -716,9 +685,7 @@ class ReminderControllerTest {
 
         // when
         ResultActions perform = mockMvc.perform(MockMvcRequestBuilders.patch("/api/v1/reminders/" + id)
-                .with(SecurityMockMvcRequestPostProcessors.oauth2Login()
-                        .oauth2User(DataUtils.mockCustomUserPrincipal()))
-                .with(csrf())
+                .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(reminderRequest)));
 
@@ -759,9 +726,7 @@ class ReminderControllerTest {
 
         // when
         ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
-                .with(SecurityMockMvcRequestPostProcessors.oauth2Login()
-                        .oauth2User(DataUtils.mockCustomUserPrincipal()))
-                .with(csrf()));
+                .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser()));
 
         // then
         perform.andDo(print())

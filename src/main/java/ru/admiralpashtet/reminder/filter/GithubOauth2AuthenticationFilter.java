@@ -1,4 +1,4 @@
-package ru.admiralpashtet.reminder.security;
+package ru.admiralpashtet.reminder.filter;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -20,6 +20,7 @@ import reactor.core.publisher.Mono;
 import ru.admiralpashtet.reminder.entity.CustomUserPrincipal;
 import ru.admiralpashtet.reminder.entity.User;
 import ru.admiralpashtet.reminder.service.UserService;
+import ru.admiralpashtet.reminder.util.JwtUtil;
 
 import java.io.IOException;
 import java.util.Collections;

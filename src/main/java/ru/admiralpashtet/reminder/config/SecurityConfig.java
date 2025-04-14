@@ -12,8 +12,8 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
-import ru.admiralpashtet.reminder.security.GithubOauth2AuthenticationFilter;
-import ru.admiralpashtet.reminder.security.GoogleOauth2AuthenticationFilter;
+import ru.admiralpashtet.reminder.filter.GithubOauth2AuthenticationFilter;
+import ru.admiralpashtet.reminder.filter.GoogleOauth2AuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity

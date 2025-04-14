@@ -1,4 +1,4 @@
-package ru.admiralpashtet.reminder.security;
+package ru.admiralpashtet.reminder.util;
 
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;

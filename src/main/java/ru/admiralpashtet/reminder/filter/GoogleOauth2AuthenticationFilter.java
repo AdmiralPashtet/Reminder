@@ -1,4 +1,4 @@
-package ru.admiralpashtet.reminder.security;
+package ru.admiralpashtet.reminder.filter;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

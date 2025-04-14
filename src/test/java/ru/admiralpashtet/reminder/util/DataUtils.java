@@ -2,6 +2,10 @@ package ru.admiralpashtet.reminder.util;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
+import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import ru.admiralpashtet.reminder.dto.ReminderRequest;
 import ru.admiralpashtet.reminder.dto.ReminderResponse;
 import ru.admiralpashtet.reminder.entity.CustomUserPrincipal;
@@ -10,9 +14,8 @@ import ru.admiralpashtet.reminder.entity.User;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 
 public class DataUtils {
@@ -54,7 +57,7 @@ public class DataUtils {
                         LocalDateTime.of(2025, 3, 18, 10, 0),
                         mockUser()
                 )
-        ));
+        ), PageRequest.of(0, 10), 5);
     }
 
     public static Page<Reminder> getPageOfRemindersForTwoUsersPersisted() {
@@ -94,7 +97,7 @@ public class DataUtils {
                         LocalDateTime.of(2025, 3, 18, 10, 0),
                         mockUser(2)
                 )
-        ));
+        ), PageRequest.of(0, 10), 5);
     }
 
     /**
@@ -146,47 +149,9 @@ public class DataUtils {
                         LocalDateTime.of(2025, 3, 18, 10, 0),
                         1
                 )
-        ));
-    }
+        ), PageRequest.of(0, 10), 5);
 
-    public static Page<ReminderResponse> getPageOfReminderResponsesForTwoUsers() {
-        return new PageImpl<>(List.of(
-                new ReminderResponse(
-                        1L,
-                        "Reminder1: Meeting Notes",
-                        "Prepare notes for team meeting",
-                        LocalDateTime.of(2025, 3, 16, 9, 0),
-                        1
-                ),
-                new ReminderResponse(
-                        2L,
-                        "Reminder4: Project Plan",
-                        "Draft plan for next meeting",
-                        LocalDateTime.of(2025, 3, 16, 14, 0),
-                        1
-                ),
-                new ReminderResponse(
-                        3L,
-                        "Reminder2: Team Review",
-                        "Review team progress notes",
-                        LocalDateTime.of(2025, 3, 17, 11, 0),
-                        2
-                ),
-                new ReminderResponse(
-                        4L,
-                        "Reminder5: Task List",
-                        "Update task list for project",
-                        LocalDateTime.of(2025, 3, 17, 15, 0),
-                        2
-                ),
-                new ReminderResponse(
-                        5L,
-                        "Reminder3: Budget Plan",
-                        "Plan budget for next quarter",
-                        LocalDateTime.of(2025, 3, 18, 10, 0),
-                        2
-                )
-        ));
+
     }
 
     public static ReminderRequest getReminderRequest() {
@@ -219,22 +184,16 @@ public class DataUtils {
         testUser.setEmail("email@mail.com");
         testUser.setTelegram("telegram");
 
-        Map<String, Object> attributes = new HashMap<>();
-        attributes.put("email", testUser.getEmail());
-
-        return new CustomUserPrincipal(testUser, attributes);
+        return new CustomUserPrincipal(testUser);
     }
 
-    public static CustomUserPrincipal mockCustomUserPrincipal(long userId) {
+    public static CustomUserPrincipal mockCustomUserPrincipal(long userId, String email, String telegram) {
         User testUser = new User();
         testUser.setId(userId);
-        testUser.setEmail("email@mail.com");
-        testUser.setTelegram("telegram");
+        testUser.setEmail(email);
+        testUser.setTelegram(telegram);
 
-        Map<String, Object> attributes = new HashMap<>();
-        attributes.put("email", testUser.getEmail());
-
-        return new CustomUserPrincipal(testUser, attributes);
+        return new CustomUserPrincipal(testUser);
     }
 
     public static String generateString(int length) {
@@ -246,5 +205,17 @@ public class DataUtils {
         return "";
     }
 
+    public static RequestPostProcessor securityMockMvcRequestPostProcessorsWithMockUser() {
+        CustomUserPrincipal customUserPrincipal = new CustomUserPrincipal(DataUtils.mockUser());
+        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
+                customUserPrincipal, null, Collections.emptyList());
+        return SecurityMockMvcRequestPostProcessors.authentication(authenticationToken);
+    }
+
+    public static RequestPostProcessor securityMockMvcRequestPostProcessorsWithMockUser(CustomUserPrincipal mockCustomUserPrincipal) {
+        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
+                mockCustomUserPrincipal, null, Collections.emptyList());
+        return SecurityMockMvcRequestPostProcessors.authentication(authenticationToken);
+    }
 
 }
