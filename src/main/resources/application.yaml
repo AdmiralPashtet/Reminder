@@ -33,6 +33,9 @@ spring:
             scope:
               - user:email
               - read:user
+      resourceserver:
+        jwt:
+          issuer-uri: https://accounts.google.com
 
 logging:
   level:

@@ -2,6 +2,6 @@ FROM openjdk:21-slim
 
 WORKDIR /app
 
-COPY target/reminderproject-0.0.1.jar reminderproject.jar
+COPY target/ReminderProject-0.0.1.jar ReminderProject.jar
 
-ENTRYPOINT ["java", "-jar", "reminderproject.jar"]
+ENTRYPOINT ["java", "-jar", "ReminderProject.jar"]
