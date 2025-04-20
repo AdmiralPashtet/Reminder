@@ -48,8 +48,8 @@ public class ReminderController {
                                                          @DateTimeFormat(iso = DateTimeFormat.ISO.TIME) LocalTime time,
                                                          @RequestParam(name = "sort", defaultValue = "remind") String sortBy,
                                                          @RequestParam(name = "asc", defaultValue = "true") boolean ascending,
-                                                         @RequestParam(defaultValue = "0") int page,
-                                                         @RequestParam(defaultValue = "10") int size,
+                                                         @RequestParam(name = "page", defaultValue = "0") int page,
+                                                         @RequestParam(name = "size", defaultValue = "10") int size,
                                                          @AuthenticationPrincipal CustomUserPrincipal principal) {
         Page<ReminderResponse> reminderPage = reminderService.findAll(principal.getId(),
                 searchByText, date, time, sortBy, ascending, page, size);
