@@ -10,6 +10,7 @@ import ru.admiralpashtet.reminder.dto.ReminderRequest;
 import ru.admiralpashtet.reminder.dto.ReminderResponse;
 import ru.admiralpashtet.reminder.entity.CustomUserPrincipal;
 import ru.admiralpashtet.reminder.entity.Reminder;
+import ru.admiralpashtet.reminder.entity.TelegramData;
 import ru.admiralpashtet.reminder.entity.User;
 
 import java.time.LocalDateTime;
@@ -171,19 +172,18 @@ public class DataUtils {
     }
 
     public static User mockUser() {
-        return new User(1L, "email@mail.com", "telegram");
+        return new User(1L, "email@mail.com", new TelegramData("telegram", 1233L));
     }
 
     public static User mockUser(long id) {
-        return new User(id, "email@mail.com", "telegram");
+        return new User(id, "email@mail.com", new TelegramData("telegram", 1233L));
     }
 
     public static CustomUserPrincipal mockCustomUserPrincipal() {
         User testUser = new User();
         testUser.setId(1L);
         testUser.setEmail("email@mail.com");
-        testUser.setTelegram("telegram");
-
+        testUser.setTelegramData(new TelegramData("telegram", 1233L));
         return new CustomUserPrincipal(testUser);
     }
 
@@ -191,8 +191,7 @@ public class DataUtils {
         User testUser = new User();
         testUser.setId(userId);
         testUser.setEmail(email);
-        testUser.setTelegram(telegram);
-
+        testUser.setTelegramData(new TelegramData("telegram", 1233L));
         return new CustomUserPrincipal(testUser);
     }
 

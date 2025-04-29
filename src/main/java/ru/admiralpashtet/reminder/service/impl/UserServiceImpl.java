@@ -26,4 +26,16 @@ public class UserServiceImpl implements UserService {
         return userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException("User with id " + id + " was not found"));
     }
+
+    @Override
+    public User findByTelegramDataUserName(String telegramUserName) {
+        return userRepository.findByTelegramDataUserName(telegramUserName)
+                .orElseThrow(() -> new UserNotFoundException("User with telegram username " + telegramUserName +
+                        " was not found"));
+    }
+
+    @Override
+    public User update(User user, Long id) {
+        return null;
+    }
 }

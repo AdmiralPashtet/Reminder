@@ -1,0 +1,44 @@
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: mock
+            client-secret: mock
+            scope:
+              - profile
+              - email
+          github:
+            client-id: mock
+            client-secret: mock
+            scope:
+              - user:email
+              - read:user
+      resourceserver:
+        jwt:
+          issuer-uri: https://accounts.google.com
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: mock
+    password: mock
+    properties:
+      mail:
+        smtp:
+          starttls:
+            enable: true
+          auth: true
+
+telegram:
+  bot:
+    token: mock
+
+logging:
+  level:
+    org:
+      springframework:
+        security: DEBUG
+
+urls:
+  github-fetch-email: https://api.github.com/user/emails

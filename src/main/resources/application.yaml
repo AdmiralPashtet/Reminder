@@ -33,6 +33,24 @@ spring:
             scope:
               - user:email
               - read:user
+      resourceserver:
+        jwt:
+          issuer-uri: https://accounts.google.com
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${GMAIL_USERNAME}
+    password: ${GMAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          starttls:
+            enable: true
+          auth: true
+
+telegram:
+  bot:
+    token: ${TELEGRAM_BOT_TOKEN}
 
 logging:
   level:
