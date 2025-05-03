@@ -5,12 +5,16 @@ import org.junit.jupiter.api.Test;
 import org.mockito.BDDMockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.telegram.telegrambots.longpolling.starter.TelegramBotInitializer;
 import ru.admiralpashtet.reminder.dto.ReminderRequest;
 import ru.admiralpashtet.reminder.dto.ReminderResponse;
 import ru.admiralpashtet.reminder.entity.Reminder;
 import ru.admiralpashtet.reminder.entity.User;
 import ru.admiralpashtet.reminder.repository.UserRepository;
+import ru.admiralpashtet.reminder.service.impl.EmailNotificationSenderService;
+import ru.admiralpashtet.reminder.service.impl.TelegramNotificationSenderService;
 import ru.admiralpashtet.reminder.util.DataUtils;
 
 import java.time.LocalDateTime;
@@ -22,12 +26,19 @@ import static org.mockito.ArgumentMatchers.anyLong;
 
 
 @SpringBootTest
+@ActiveProfiles("test")
 class ReminderMapperTest {
     @Autowired
     private ReminderMapper reminderMapper;
 
     @MockitoBean
     private UserRepository userRepository;
+    @MockitoBean
+    private EmailNotificationSenderService emailNotificationSenderService;
+    @MockitoBean
+    private TelegramNotificationSenderService telegramNotificationSenderService;
+    @MockitoBean
+    private TelegramBotInitializer telegramBotInitializer;
 
     private User testUser;
 

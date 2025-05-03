@@ -8,18 +8,24 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+import org.telegram.telegrambots.longpolling.starter.TelegramBotInitializer;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import ru.admiralpashtet.reminder.dto.ReminderRequest;
 import ru.admiralpashtet.reminder.dto.ReminderResponse;
 import ru.admiralpashtet.reminder.entity.Reminder;
+import ru.admiralpashtet.reminder.entity.TelegramData;
 import ru.admiralpashtet.reminder.entity.User;
 import ru.admiralpashtet.reminder.mapper.ReminderMapper;
 import ru.admiralpashtet.reminder.repository.ReminderRepository;
 import ru.admiralpashtet.reminder.repository.UserRepository;
+import ru.admiralpashtet.reminder.service.impl.EmailNotificationSenderService;
+import ru.admiralpashtet.reminder.service.impl.TelegramNotificationSenderService;
+import ru.admiralpashtet.reminder.telegram.TelegramBot;
 import ru.admiralpashtet.reminder.util.DataUtils;
 
 import java.time.LocalDate;
@@ -51,10 +57,18 @@ class ReminderControllerIT extends BaseIT {
     private ObjectMapper objectMapper;
     @Autowired
     private ReminderMapper reminderMapper;
+    @MockitoBean
+    private EmailNotificationSenderService emailNotificationSenderService;
+    @MockitoBean
+    private TelegramNotificationSenderService telegramNotificationSenderService;
+    @MockitoBean
+    private TelegramBotInitializer telegramBotInitializer;
+    @MockitoBean
+    private TelegramBot telegramBot;
 
     @BeforeAll
     void userInit() {
-        userRepository.save(new User(null, "email@mail.com", "telegram"));
+        userRepository.save(new User(null, "email@mail.com", new TelegramData("telegram", 1233L)));
     }
 
     @BeforeEach
@@ -270,7 +284,7 @@ class ReminderControllerIT extends BaseIT {
                 "Some title",
                 "Some description",
                 LocalDateTime.of(LocalDate.now(), time),
-                new User(1L, "email@mail.com", "telegram")));
+                new User(1L, "email@mail.com", new TelegramData("telegram", 1233L))));
 
         long expectedSize = allReminders.stream()
                 .filter(reminder -> reminder.getRemind().toLocalDate().isEqual(LocalDate.now()))
@@ -725,7 +739,7 @@ class ReminderControllerIT extends BaseIT {
     @DisplayName("Test find all with few users")
     void givenFiveRemindersTwoForFirstUserThreeForSecond_whenFindAllWithDefaultParamsCalled_thenReturnCorrectReminders() throws Exception {
         // given
-        userRepository.save(new User(null, "email2@mail.com", "telegram"));
+        userRepository.save(new User(null, "email2@mail.com", new TelegramData("telegram", 1233L)));
         List<Reminder> list = DataUtils.getPageOfRemindersForTwoUsersPersisted()
                 .getContent()
                 .stream()
