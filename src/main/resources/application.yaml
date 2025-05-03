@@ -47,7 +47,7 @@ spring:
           starttls:
             enable: true
           auth: true
-
+          
 telegram:
   bot:
     token: ${TELEGRAM_BOT_TOKEN}

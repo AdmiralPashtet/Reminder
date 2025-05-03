@@ -52,12 +52,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class ReminderControllerTest {
     @MockitoBean
     private ReminderService reminderService;
+    @MockitoBean
+    private UserRepository userRepository;          // mock for UserMapperHelper@MockitoBean
+    @MockitoBean
+    private UserService userService;                // mock for SecurityConfig
     @Autowired
     private MockMvc mockMvc;
-    @MockitoBean
-    private UserRepository userRepository;      // mock for UserMapperHelper@MockitoBean
-    @MockitoBean
-    private UserService userService;      // mock for SecurityConfig
     @Autowired
     private ObjectMapper objectMapper;
     @Autowired
