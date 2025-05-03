@@ -1,6 +1,6 @@
 -- changeset pavel.vlezko:2
 ALTER TABLE Users
-    ADD COLUMN notification_email VARCHAR(128);
+    ADD COLUMN reminder_email VARCHAR(128) UNIQUE;
 ALTER TABLE Users
     ADD COLUMN telegram_chat_id BIGINT;
 ALTER TABLE Users

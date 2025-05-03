@@ -42,7 +42,6 @@ public class TelegramBot implements SpringLongPollingBot, LongPollingSingleThrea
 
             if (update.getMessage().hasText() && update.getMessage().getText().equals("/start")) {
                 User user = null;
-
                 try {
                     user = userService.findByTelegramDataUserName(userName);
                 } catch (UserNotFoundException ex) {
@@ -88,7 +87,7 @@ public class TelegramBot implements SpringLongPollingBot, LongPollingSingleThrea
         Long chatId = reminder.getUser().getTelegramData().getChatId();
         if (chatId == null) {
             throw new RuntimeException("Telegram chat for user "
-                    + reminder.getUser().getTelegramData().getUserName() + " was not found");
+                    + reminder.getUser().getTelegramData().getUsername() + " was not found");
         }
         SendMessage message = SendMessage.builder()
                 .chatId(chatId)
