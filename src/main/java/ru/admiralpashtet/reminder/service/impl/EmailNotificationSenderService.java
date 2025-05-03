@@ -22,7 +22,7 @@ public class EmailNotificationSenderService implements NotificationSenderService
     }
 
     private SimpleMailMessage createMessage(Reminder reminder) {
-        String email = reminder.getUser().getNotificationEmail();
+        String email = reminder.getUser().getReminderEmail();
         if (email == null) {
             throw new RuntimeException("Email for notification not set");
         }

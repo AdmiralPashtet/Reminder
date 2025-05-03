@@ -31,9 +31,9 @@ public class ReminderController {
 
     @PatchMapping("/{id}")
     public ResponseEntity<ReminderResponse> update(@RequestBody ReminderRequest reminderRequest,
-                                                   @PathVariable("id") long id,
+                                                   @PathVariable("id") long reminderId,
                                                    @AuthenticationPrincipal CustomUserPrincipal principal) {
-        ReminderResponse updated = reminderService.update(reminderRequest, id, principal.getId());
+        ReminderResponse updated = reminderService.update(reminderRequest, reminderId, principal.getId());
         return new ResponseEntity<>(updated, HttpStatus.OK);
     }
 

@@ -12,6 +12,6 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TelegramData {
-    private String userName;
+    private String username;
     private Long chatId;
 }
