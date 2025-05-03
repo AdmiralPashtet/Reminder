@@ -3,9 +3,11 @@ package ru.admiralpashtet.reminder.service;
 import org.springframework.data.domain.Page;
 import ru.admiralpashtet.reminder.dto.ReminderRequest;
 import ru.admiralpashtet.reminder.dto.ReminderResponse;
+import ru.admiralpashtet.reminder.entity.Reminder;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 
 public interface ReminderService {
     ReminderResponse create(ReminderRequest reminderRequest, Long userId);
@@ -17,5 +19,5 @@ public interface ReminderService {
 
     void deleteById(Long reminderId, Long userId);
 
-    void remind();
+    List<Reminder> findAllByLocalDateTimeNow();
 }

@@ -18,8 +18,10 @@ import ru.admiralpashtet.reminder.service.ReminderService;
 import ru.admiralpashtet.reminder.sort.SortCondition;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -84,6 +86,7 @@ public class ReminderServiceImpl implements ReminderService {
     }
 
     @Override
-    public void remind() {
+    public List<Reminder> findAllByLocalDateTimeNow() {
+        return reminderRepository.findAllByRemind(LocalDateTime.now());
     }
 }
