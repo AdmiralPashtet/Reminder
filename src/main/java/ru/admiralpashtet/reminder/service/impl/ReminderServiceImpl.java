@@ -18,8 +18,8 @@ import ru.admiralpashtet.reminder.service.ReminderService;
 import ru.admiralpashtet.reminder.sort.SortCondition;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -85,7 +85,7 @@ public class ReminderServiceImpl implements ReminderService {
     }
 
     @Override
-    public List<Reminder> findAllByRemindBetween(OffsetDateTime from, OffsetDateTime to) {
-        return reminderRepository.findAllByRemindBetween(from, to);
+    public List<Reminder> findAllByLocalDateTimeNow() {
+        return reminderRepository.findAllByRemind(LocalDateTime.now());
     }
 }

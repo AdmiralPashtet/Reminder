@@ -24,7 +24,6 @@ public class User {
             @AttributeOverride(name = "username", column = @Column(name = "telegram_username")),
             @AttributeOverride(name = "chatId", column = @Column(name = "telegram_chat_id"))})
     private TelegramData telegramData;
-    private String timeZone;
     @OneToMany(mappedBy = "user", orphanRemoval = true)
     @ToString.Exclude
     private List<Reminder> reminders;
@@ -32,7 +31,6 @@ public class User {
     @PrePersist
     private void setUpDefaultData() {
         reminderEmail = email;
-        timeZone = "UTC";
         telegramData = new TelegramData("null", null);
     }
 }

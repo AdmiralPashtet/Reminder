@@ -126,7 +126,7 @@ class UserServiceImplTest {
 
         // when
         UserResponse userResponse = userService.updateNotificationSettings(new UserSettingsRequest(
-                "mock", "mock", "UTC"), 15L);
+                "mock", "mock"), 15L);
         // then
         assertThat(userResponse).isNotNull();
         assertThat(userResponse.reminderEmail()).isEqualTo(updatedUser.getReminderEmail());

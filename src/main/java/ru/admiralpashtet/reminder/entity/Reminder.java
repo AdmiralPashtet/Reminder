@@ -7,7 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "Reminders")
@@ -21,7 +21,7 @@ public class Reminder {
     private String title;
     private String description;
     @NotNull
-    private Instant remind;
+    private LocalDateTime remind;
     @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     @NotNull

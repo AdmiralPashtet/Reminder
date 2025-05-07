@@ -16,8 +16,7 @@ import ru.admiralpashtet.reminder.entity.Reminder;
 import ru.admiralpashtet.reminder.entity.TelegramData;
 import ru.admiralpashtet.reminder.entity.User;
 
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -31,35 +30,35 @@ public class DataUtils {
                         1L,
                         "Reminder1: Meeting Notes",
                         "Prepare notes for team meeting",
-                        OffsetDateTime.of(2025, 3, 16, 9, 0, 0, 0, ZoneOffset.UTC).toInstant(),
+                        LocalDateTime.of(2025, 3, 16, 9, 0),
                         mockUser()
                 ),
                 new Reminder(
                         2L,
                         "Reminder4: Project Plan",
                         "Draft plan for next meeting",
-                        OffsetDateTime.of(2025, 3, 16, 14, 0, 0, 0, ZoneOffset.UTC).toInstant(),
+                        LocalDateTime.of(2025, 3, 16, 14, 0),
                         mockUser()
                 ),
                 new Reminder(
                         3L,
                         "Reminder2: Team Review",
                         "Review team progress notes",
-                        OffsetDateTime.of(2025, 3, 17, 11, 0, 0, 0, ZoneOffset.UTC).toInstant(),
+                        LocalDateTime.of(2025, 3, 17, 11, 0),
                         mockUser()
                 ),
                 new Reminder(
                         4L,
                         "Reminder5: Task List",
                         "Update task list for project",
-                        OffsetDateTime.of(2025, 3, 17, 15, 0, 0, 0, ZoneOffset.UTC).toInstant(),
+                        LocalDateTime.of(2025, 3, 17, 15, 0),
                         mockUser()
                 ),
                 new Reminder(
                         5L,
                         "Reminder3: Budget Plan",
                         "Plan budget for next quarter",
-                        OffsetDateTime.of(2025, 3, 18, 10, 0, 0, 0, ZoneOffset.UTC).toInstant(),
+                        LocalDateTime.of(2025, 3, 18, 10, 0),
                         mockUser()
                 )
         ), PageRequest.of(0, 10), 5);
@@ -71,35 +70,35 @@ public class DataUtils {
                         1L,
                         "Reminder1: Meeting Notes",
                         "Prepare notes for team meeting",
-                        OffsetDateTime.of(2025, 3, 16, 9, 0, 0, 0, ZoneOffset.UTC).toInstant(),
+                        LocalDateTime.of(2025, 3, 16, 9, 0),
                         mockUser()
                 ),
                 new Reminder(
                         2L,
                         "Reminder4: Project Plan",
                         "Draft plan for next meeting",
-                        OffsetDateTime.of(2025, 3, 16, 14, 0, 0, 0, ZoneOffset.UTC).toInstant(),
+                        LocalDateTime.of(2025, 3, 16, 14, 0),
                         mockUser()
                 ),
                 new Reminder(
                         3L,
                         "Reminder2: Team Review",
                         "Review team progress notes",
-                        OffsetDateTime.of(2025, 3, 17, 11, 0, 0, 0, ZoneOffset.UTC).toInstant(),
+                        LocalDateTime.of(2025, 3, 17, 11, 0),
                         mockUser(2L)
                 ),
                 new Reminder(
                         4L,
                         "Reminder5: Task List",
                         "Update task list for project",
-                        OffsetDateTime.of(2025, 3, 17, 15, 0, 0, 0, ZoneOffset.UTC).toInstant(),
+                        LocalDateTime.of(2025, 3, 17, 15, 0),
                         mockUser(2L)
                 ),
                 new Reminder(
                         5L,
                         "Reminder3: Budget Plan",
                         "Plan budget for next quarter",
-                        OffsetDateTime.of(2025, 3, 18, 10, 0, 0, 0, ZoneOffset.UTC).toInstant(),
+                        LocalDateTime.of(2025, 3, 18, 10, 0),
                         mockUser(2L)
                 )
         ), PageRequest.of(0, 10), 5);
@@ -123,35 +122,35 @@ public class DataUtils {
                         1L,
                         "Reminder1: Meeting Notes",
                         "Prepare notes for team meeting",
-                        OffsetDateTime.of(2025, 3, 16, 9, 0, 0, 0, ZoneOffset.UTC),
+                        LocalDateTime.of(2025, 3, 16, 9, 0),
                         1
                 ),
                 new ReminderResponse(
                         2L,
                         "Reminder4: Project Plan",
                         "Draft plan for next meeting",
-                        OffsetDateTime.of(2025, 3, 16, 14, 0, 0, 0, ZoneOffset.UTC),
+                        LocalDateTime.of(2025, 3, 16, 14, 0),
                         1
                 ),
                 new ReminderResponse(
                         3L,
                         "Reminder2: Team Review",
                         "Review team progress notes",
-                        OffsetDateTime.of(2025, 3, 17, 11, 0, 0, 0, ZoneOffset.UTC),
+                        LocalDateTime.of(2025, 3, 17, 11, 0),
                         1
                 ),
                 new ReminderResponse(
                         4L,
                         "Reminder5: Task List",
                         "Update task list for project",
-                        OffsetDateTime.of(2025, 3, 17, 15, 0, 0, 0, ZoneOffset.UTC),
+                        LocalDateTime.of(2025, 3, 17, 15, 0),
                         1
                 ),
                 new ReminderResponse(
                         5L,
                         "Reminder3: Budget Plan",
                         "Plan budget for next quarter",
-                        OffsetDateTime.of(2025, 3, 18, 10, 0, 0, 0, ZoneOffset.UTC),
+                        LocalDateTime.of(2025, 3, 18, 10, 0),
                         1
                 )
         ), PageRequest.of(0, 10), 5);
@@ -160,19 +159,19 @@ public class DataUtils {
     }
 
     public static ReminderRequest getReminderRequest() {
-        return new ReminderRequest("Title", "Description", OffsetDateTime.now().plusDays(1));
+        return new ReminderRequest("Title", "Description", LocalDateTime.now().plusDays(1));
     }
 
     public static ReminderResponse getReminderResponse() {
-        return new ReminderResponse(1L, "Title", "Description", OffsetDateTime.now().plusDays(1), 1);
+        return new ReminderResponse(1L, "Title", "Description", LocalDateTime.now().plusDays(1), 1);
     }
 
     public static Reminder getReminderTransient() {
-        return new Reminder(null, "Title", "Description", OffsetDateTime.now().plusDays(1).toInstant(), mockUser());
+        return new Reminder(null, "Title", "Description", LocalDateTime.now().plusDays(1), mockUser());
     }
 
     public static Reminder getReminderPersisted() {
-        return new Reminder(1L, "Title", "Description", OffsetDateTime.now().plusDays(1).toInstant(), mockUser());
+        return new Reminder(1L, "Title", "Description", LocalDateTime.now().plusDays(1), mockUser());
     }
 
     public static User mockUser() {
@@ -181,7 +180,6 @@ public class DataUtils {
         user.setEmail("email@mail.com");
         user.setReminderEmail("email@mail.com");
         user.setTelegramData(new TelegramData("telegram", 1233L));
-        user.setTimeZone("UTC");
         return user;
     }
 
@@ -191,7 +189,6 @@ public class DataUtils {
         user.setEmail("email@mail.com");
         user.setReminderEmail("email@mail.com");
         user.setTelegramData(new TelegramData("telegram", 1233L));
-        user.setTimeZone("UTC");
         return user;
     }
 
@@ -200,7 +197,6 @@ public class DataUtils {
         testUser.setId(1L);
         testUser.setEmail("email@mail.com");
         testUser.setTelegramData(new TelegramData("telegram", 1233L));
-        testUser.setTimeZone("UTC");
         return new CustomUserPrincipal(testUser);
     }
 
@@ -243,4 +239,5 @@ public class DataUtils {
         update.setMessage(message);
         return update;
     }
+
 }

@@ -15,9 +15,6 @@ import ru.admiralpashtet.reminder.service.impl.ScheduleNotifier;
 import ru.admiralpashtet.reminder.service.impl.TelegramNotificationSenderService;
 import ru.admiralpashtet.reminder.util.DataUtils;
 
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -36,10 +33,8 @@ class ScheduleNotifierTest {
     @DisplayName("Test scheduled notification functionality")
     void givenReminder_whenDoNotifyCalled_thenSendNotification() {
         // given
-        OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC).truncatedTo(ChronoUnit.MINUTES);
-        OffsetDateTime plusMinute = now.plusMinutes(1);
         List<Reminder> reminders = List.of(DataUtils.getReminderPersisted());
-        BDDMockito.given(reminderService.findAllByRemindBetween(now, plusMinute)).willReturn(reminders);
+        BDDMockito.given(reminderService.findAllByLocalDateTimeNow()).willReturn(reminders);
         // when
         Awaitility.await()
                 .atMost(62, TimeUnit.SECONDS)

@@ -37,7 +37,4 @@ public class CustomUserPrincipal implements UserDetails {
         return user.getId();
     }
 
-    public String getTimeZone() {
-        return user.getTimeZone();
-    }
 }

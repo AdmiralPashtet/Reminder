@@ -40,7 +40,7 @@ class UserControllerTest {
     void givenNotificationSettingRequest_whenUpdate_thenReturnUserResponse() throws Exception {
         // given
         UserSettingsRequest request = new UserSettingsRequest("changedEmail@mail.ru",
-                "changedTelegram", "UTC");
+                "changedTelegram");
         BDDMockito.given(userService.updateNotificationSettings(any(UserSettingsRequest.class), anyLong()))
                 .willReturn(new UserResponse(request.reminderEmail(), request.telegramUsername()));
         // when
@@ -61,7 +61,7 @@ class UserControllerTest {
     void givenInvalidNotificationSettingRequest_whenUpdate_thenReturnUserResponse() throws Exception {
         // given
         UserSettingsRequest request = new UserSettingsRequest("dummyemail",
-                "changedTelegram", "UTC");
+                "changedTelegram");
         BDDMockito.given(userService.updateNotificationSettings(any(UserSettingsRequest.class), anyLong()))
                 .willReturn(new UserResponse("mock@mock.mock", "mock"));
         // when

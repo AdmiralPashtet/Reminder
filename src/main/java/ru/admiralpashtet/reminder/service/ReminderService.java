@@ -7,7 +7,6 @@ import ru.admiralpashtet.reminder.entity.Reminder;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.time.OffsetDateTime;
 import java.util.List;
 
 public interface ReminderService {
@@ -20,5 +19,5 @@ public interface ReminderService {
 
     void deleteById(Long reminderId, Long userId);
 
-    List<Reminder> findAllByRemindBetween(OffsetDateTime from, OffsetDateTime to);
+    List<Reminder> findAllByLocalDateTimeNow();
 }

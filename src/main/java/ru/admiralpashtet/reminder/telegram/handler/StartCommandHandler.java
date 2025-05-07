@@ -47,13 +47,13 @@ public class StartCommandHandler implements BotCommand {
         }
     }
 
-    private User getUserByTelegramUsername(User user, String userName, Long chatId) {
+    private User getUserByTelegramUsername(User user, String username, Long chatId) {
         try {
-            user = userService.findByTelegramDataUsername(userName);
+            user = userService.findByTelegramDataUsername(username);
         } catch (UserNotFoundException ex) {
             SendMessage message = SendMessage.builder()
                     .chatId(chatId)
-                    .text(String.format("User with telegram @%s was not found in system.", userName))
+                    .text(String.format("User with telegram @%s was not found in system.", username))
                     .build();
             telegramMessageSender.reply(message);
         }

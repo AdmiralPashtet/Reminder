@@ -7,9 +7,6 @@ import ru.admiralpashtet.reminder.entity.Reminder;
 import ru.admiralpashtet.reminder.service.ReminderService;
 import ru.admiralpashtet.reminder.service.ScheduleService;
 
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 @Service
@@ -21,12 +18,9 @@ public class ScheduleNotifier implements ScheduleService {
     private TelegramNotificationSenderService telegramNotificationSenderService;
 
     @Override
-    @Scheduled(cron = "0 * * * * *", zone = "UTC")
+    @Scheduled(cron = "0 * * * * *")
     public void doNotify() {
-        OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC).truncatedTo(ChronoUnit.MINUTES);
-        OffsetDateTime plusMinute = now.plusMinutes(1);
-
-        List<Reminder> reminders = reminderService.findAllByRemindBetween(now, plusMinute);
+        List<Reminder> reminders = reminderService.findAllByLocalDateTimeNow();
         if (!reminders.isEmpty()) {
             reminders.forEach(reminder -> {
                 emailNotificationSenderService.sendNotification(reminder);

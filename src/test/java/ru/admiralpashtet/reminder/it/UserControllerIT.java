@@ -68,7 +68,7 @@ class UserControllerIT extends BaseIT {
         CustomUserPrincipal customUserPrincipal = DataUtils.mockCustomUserPrincipal(saved.getId(), saved.getReminderEmail(),
                 saved.getTelegramData().getUsername());
         UserSettingsRequest request = new UserSettingsRequest("changedEmail@mail.ru",
-                "changedTelegram", "UTC");
+                "changedTelegram");
         // when
         ResultActions perform = mockMvc.perform(MockMvcRequestBuilders.patch("/api/v1/users")
                 .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser(customUserPrincipal))
@@ -87,7 +87,7 @@ class UserControllerIT extends BaseIT {
     void givenInvalidNotificationSettingRequest_whenUpdate_thenReturnUserResponse() throws Exception {
         // given
         UserSettingsRequest request = new UserSettingsRequest("dummyemail",
-                "changedTelegram", "UTC");
+                "changedTelegram");
         // when
         ResultActions perform = mockMvc.perform(MockMvcRequestBuilders.patch("/api/v1/users")
                 .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())

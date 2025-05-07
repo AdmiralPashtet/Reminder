@@ -19,7 +19,7 @@ import ru.admiralpashtet.reminder.telegram.listener.TelegramUpdateListener;
 import ru.admiralpashtet.reminder.telegram.sender.TelegramMessageSender;
 import ru.admiralpashtet.reminder.util.DataUtils;
 
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -90,7 +90,7 @@ class ReminderMapperTest extends BaseIT {
     void givenExistsEntityAndRequestDto_whenUpdateEntityFromDtoCalled_thenEntityUpdated() {
         // given
         ReminderRequest request =
-                new ReminderRequest("new title", "new description", OffsetDateTime.now());
+                new ReminderRequest("new title", "new description", LocalDateTime.now());
         Reminder reminder = DataUtils.getReminderPersisted();
 
         // when
@@ -99,6 +99,6 @@ class ReminderMapperTest extends BaseIT {
         // then
         assertEquals(reminder.getTitle(), request.title());
         assertEquals(reminder.getDescription(), request.description());
-        assertEquals(reminder.getRemind(), request.remind().toInstant());
+        assertEquals(reminder.getRemind(), request.remind());
     }
 }

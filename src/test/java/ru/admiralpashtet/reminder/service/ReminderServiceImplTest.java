@@ -21,7 +21,9 @@ import ru.admiralpashtet.reminder.repository.ReminderRepository;
 import ru.admiralpashtet.reminder.service.impl.ReminderServiceImpl;
 import ru.admiralpashtet.reminder.util.DataUtils;
 
-import java.time.*;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -75,7 +77,7 @@ class ReminderServiceImplTest {
         // given
         Reminder reminderPersisted = DataUtils.getReminderPersisted();
         ReminderRequest reminderRequest =
-                new ReminderRequest("Updated title", "description", OffsetDateTime.now());
+                new ReminderRequest("Updated title", "description", LocalDateTime.now());
 
         BDDMockito.given(reminderRepository.findById(anyLong()))
                 .willReturn(Optional.of(reminderPersisted));
@@ -216,7 +218,7 @@ class ReminderServiceImplTest {
         Page<ReminderResponse> responsePage = DataUtils.getPageOfReminderResponsesForOneUser();
         List<Reminder> allReminders = DataUtils.getPageOfRemindersPersisted().getContent();
         List<Reminder> filtered = allReminders.stream()
-                .filter(reminder -> reminder.getRemind().atOffset(ZoneOffset.UTC).toLocalDate().equals(date))
+                .filter(reminder -> reminder.getRemind().toLocalDate().equals(date))
                 .toList();
         Page<Reminder> filteredPage = new PageImpl<>(filtered, PageRequest.of(0, 10), filtered.size());
 
@@ -251,7 +253,7 @@ class ReminderServiceImplTest {
         Page<ReminderResponse> responsePage = DataUtils.getPageOfReminderResponsesForOneUser();
         List<Reminder> allReminders = DataUtils.getPageOfRemindersPersisted().getContent();
         List<Reminder> filtered = allReminders.stream()
-                .filter(reminder -> reminder.getRemind().atOffset(ZoneOffset.UTC).toLocalTime().equals(time))
+                .filter(reminder -> reminder.getRemind().toLocalTime().equals(time))
                 .toList();
         Page<Reminder> filteredPage = new PageImpl<>(filtered, PageRequest.of(0, 10), filtered.size());
 
@@ -280,11 +282,11 @@ class ReminderServiceImplTest {
     @DisplayName("Test find all reminders with date and time functionality")
     void givenFiveReminders_whenFindAllCalledWithDateAndTime_thenReturnPageWithFoundedReminders() {
         // given
-        OffsetDateTime dateTime = OffsetDateTime.of(2025, 3, 16, 9, 0, 0, 0, ZoneOffset.UTC);
+        LocalDateTime dateTime = LocalDateTime.of(2025, 3, 16, 9, 0);
         Page<ReminderResponse> responsePage = DataUtils.getPageOfReminderResponsesForOneUser();
         List<Reminder> allReminders = DataUtils.getPageOfRemindersPersisted().getContent();
         List<Reminder> filtered = allReminders.stream()
-                .filter(reminder -> reminder.getRemind().equals(dateTime.toInstant()))
+                .filter(reminder -> reminder.getRemind().equals(dateTime))
                 .toList();
         Page<Reminder> filteredPage = new PageImpl<>(filtered, PageRequest.of(0, 10), filtered.size());
 
@@ -316,13 +318,13 @@ class ReminderServiceImplTest {
         // given
         String searchQuery = "meeting";
         Page<ReminderResponse> responsePage = DataUtils.getPageOfReminderResponsesForOneUser();
-        OffsetDateTime dateTime = OffsetDateTime.of(2025, 3, 16, 9, 0, 0, 0, ZoneOffset.UTC);
+        LocalDateTime dateTime = LocalDateTime.of(2025, 3, 16, 9, 0);
         List<Reminder> allReminders = DataUtils.getPageOfRemindersPersisted().getContent();
         List<Reminder> filteredReminders = allReminders.stream()
                 .filter(r -> (r.getTitle().toLowerCase().contains(searchQuery.toLowerCase())
                         || r.getDescription().toLowerCase().contains(searchQuery.toLowerCase()))
-                        && r.getRemind().atOffset(ZoneOffset.UTC).toLocalDate().equals(dateTime.toLocalDate())
-                        && r.getRemind().atOffset(ZoneOffset.UTC).toLocalTime().equals(dateTime.toLocalTime()))
+                        && r.getRemind().toLocalDate().equals(dateTime.toLocalDate())
+                        && r.getRemind().toLocalTime().equals(dateTime.toLocalTime()))
                 .toList();
         Page<Reminder> filteredPage = new PageImpl<>(filteredReminders, PageRequest.of(0, 10), filteredReminders.size());
 
@@ -450,8 +452,8 @@ class ReminderServiceImplTest {
         assertThat(result).isNotNull();
         List<ReminderResponse> content = result.getContent();
         for (int i = 0; i < content.size() - 1; i++) {
-            OffsetDateTime current = content.get(i).remind();
-            OffsetDateTime next = content.get(i + 1).remind();
+            LocalDateTime current = content.get(i).remind();
+            LocalDateTime next = content.get(i + 1).remind();
             assertThat(current.isBefore(next) || current.isEqual(next)).isTrue();
         }
     }
@@ -504,8 +506,8 @@ class ReminderServiceImplTest {
         assertThat(result).isNotNull();
         List<ReminderResponse> content = result.getContent();
         for (int i = 0; i < content.size() - 1; i++) {
-            OffsetDateTime current = content.get(i).remind();
-            OffsetDateTime next = content.get(i + 1).remind();
+            LocalDateTime current = content.get(i).remind();
+            LocalDateTime next = content.get(i + 1).remind();
             assertThat(current.isEqual(next) || current.isAfter(next)).isTrue();
         }
     }
