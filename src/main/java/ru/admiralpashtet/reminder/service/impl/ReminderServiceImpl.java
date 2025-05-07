@@ -6,8 +6,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-import ru.admiralpashtet.reminder.dto.ReminderRequest;
-import ru.admiralpashtet.reminder.dto.ReminderResponse;
+import ru.admiralpashtet.reminder.dto.request.ReminderRequest;
+import ru.admiralpashtet.reminder.dto.response.ReminderResponse;
 import ru.admiralpashtet.reminder.entity.Reminder;
 import ru.admiralpashtet.reminder.exception.AccessDeniedException;
 import ru.admiralpashtet.reminder.exception.ReminderNotFoundException;
@@ -18,8 +18,8 @@ import ru.admiralpashtet.reminder.service.ReminderService;
 import ru.admiralpashtet.reminder.sort.SortCondition;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -73,7 +73,6 @@ public class ReminderServiceImpl implements ReminderService {
         Reminder saved = reminderRepository.save(reminder);
 
         return reminderMapper.toResponseDTO(saved);
-
     }
 
     @Override
@@ -86,7 +85,7 @@ public class ReminderServiceImpl implements ReminderService {
     }
 
     @Override
-    public List<Reminder> findAllByLocalDateTimeNow() {
-        return reminderRepository.findAllByRemind(LocalDateTime.now());
+    public List<Reminder> findAllByRemindBetween(OffsetDateTime from, OffsetDateTime to) {
+        return reminderRepository.findAllByRemindBetween(from, to);
     }
 }

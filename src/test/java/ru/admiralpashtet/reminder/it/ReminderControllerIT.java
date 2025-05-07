@@ -14,24 +14,20 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.telegram.telegrambots.longpolling.starter.TelegramBotInitializer;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import ru.admiralpashtet.reminder.dto.ReminderRequest;
-import ru.admiralpashtet.reminder.dto.ReminderResponse;
+import ru.admiralpashtet.reminder.dto.request.ReminderRequest;
+import ru.admiralpashtet.reminder.dto.response.ReminderResponse;
 import ru.admiralpashtet.reminder.entity.Reminder;
-import ru.admiralpashtet.reminder.entity.TelegramData;
 import ru.admiralpashtet.reminder.entity.User;
 import ru.admiralpashtet.reminder.mapper.ReminderMapper;
 import ru.admiralpashtet.reminder.repository.ReminderRepository;
 import ru.admiralpashtet.reminder.repository.UserRepository;
 import ru.admiralpashtet.reminder.service.impl.EmailNotificationSenderService;
 import ru.admiralpashtet.reminder.service.impl.TelegramNotificationSenderService;
-import ru.admiralpashtet.reminder.telegram.TelegramBot;
+import ru.admiralpashtet.reminder.telegram.listener.TelegramUpdateListener;
+import ru.admiralpashtet.reminder.telegram.sender.TelegramMessageSender;
 import ru.admiralpashtet.reminder.util.DataUtils;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
+import java.time.*;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -42,9 +38,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+
 @AutoConfigureMockMvc
 @TestInstance(TestInstance.Lifecycle.PER_CLASS) // чтобы можно было использовать нестатический метод в @BeforeAll
-@Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class ReminderControllerIT extends BaseIT {
     @Autowired
@@ -64,11 +60,14 @@ class ReminderControllerIT extends BaseIT {
     @MockitoBean
     private TelegramBotInitializer telegramBotInitializer;
     @MockitoBean
-    private TelegramBot telegramBot;
+    private TelegramMessageSender telegramMessageSender;
+    @MockitoBean
+    private TelegramUpdateListener telegramUpdateListener;
+
 
     @BeforeAll
     void userInit() {
-        userRepository.save(new User(null, "email@mail.com", new TelegramData("telegram", 1233L)));
+        userRepository.save(DataUtils.mockUser(null));
     }
 
     @BeforeEach
@@ -80,7 +79,8 @@ class ReminderControllerIT extends BaseIT {
     @DisplayName("Test reminder creation functionality")
     void givenValidReminderRequest_whenCreateCalled_thenReturnReminderResponse() throws Exception {
         // given
-        ReminderRequest reminderRequest = DataUtils.getReminderRequest();
+        ReminderRequest reminderRequest =
+                new ReminderRequest("Title", "Description", OffsetDateTime.now(ZoneOffset.UTC));
 
         // when
         ResultActions perform = mockMvc.perform(post("/api/v1/reminders")
@@ -98,7 +98,7 @@ class ReminderControllerIT extends BaseIT {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.description",
                         CoreMatchers.is(reminderRequest.description())))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.remind",
-                        CoreMatchers.startsWith(remindToDateTimeWithoutMs(reminderRequest.remind()))))
+                        CoreMatchers.startsWith(reminderRequest.remind().toString().substring(0, 17))))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.userId",
                         CoreMatchers.notNullValue()));
     }
@@ -109,7 +109,7 @@ class ReminderControllerIT extends BaseIT {
         // given
         Reminder reminderTransient = DataUtils.getReminderTransient();
         ReminderRequest reminderRequest =
-                new ReminderRequest("Updated title", "description", LocalDateTime.now());
+                new ReminderRequest("Updated title", "description", OffsetDateTime.now());
 
         Reminder saved = reminderRepository.save(reminderTransient);
 
@@ -252,7 +252,7 @@ class ReminderControllerIT extends BaseIT {
                 .peek(reminder -> reminder.setId(null))
                 .toList();
         long expectedSize = allReminders.stream()
-                .filter(reminder -> reminder.getRemind().toLocalDate().equals(date))
+                .filter(reminder -> reminder.getRemind().atOffset(ZoneOffset.UTC).toLocalDate().equals(date))
                 .count();
 
         reminderRepository.saveAll(allReminders);
@@ -275,7 +275,8 @@ class ReminderControllerIT extends BaseIT {
     @DisplayName("Test find all reminders with time functionality")
     void givenFiveReminders_whenGetAllCalledWithTime_thenReturnPageWithFoundedReminders() throws Exception {
         // given
-        LocalTime time = LocalDateTime.of(2025, 3, 16, 9, 0).toLocalTime();
+        LocalTime time = OffsetDateTime.of(2025, 3, 16, 9, 0, 0,
+                0, ZoneOffset.UTC).toLocalTime();
         List<Reminder> allReminders = DataUtils.getPageOfRemindersPersisted().getContent()
                 .stream()
                 .peek(reminder -> reminder.setId(null))
@@ -283,12 +284,12 @@ class ReminderControllerIT extends BaseIT {
         allReminders.add(new Reminder(null,
                 "Some title",
                 "Some description",
-                LocalDateTime.of(LocalDate.now(), time),
-                new User(1L, "email@mail.com", new TelegramData("telegram", 1233L))));
+                OffsetDateTime.of(LocalDate.now(), time, ZoneOffset.UTC).toInstant(),
+                DataUtils.mockUser(1L)));
 
         long expectedSize = allReminders.stream()
-                .filter(reminder -> reminder.getRemind().toLocalDate().isEqual(LocalDate.now()))
-                .filter(reminder -> reminder.getRemind().toLocalTime().equals(time))
+                .filter(reminder -> reminder.getRemind().atOffset(ZoneOffset.UTC).toLocalDate().isEqual(LocalDate.now()))
+                .filter(reminder -> reminder.getRemind().atOffset(ZoneOffset.UTC).toLocalTime().equals(time))
                 .count();
 
         reminderRepository.saveAll(allReminders);
@@ -302,7 +303,7 @@ class ReminderControllerIT extends BaseIT {
         perform.andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.content[0].remind",
-                        CoreMatchers.endsWith(time.toString())))
+                        CoreMatchers.containsString(time.toString())))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.content.length()",
                         CoreMatchers.is((int) expectedSize)));
     }
@@ -311,13 +312,13 @@ class ReminderControllerIT extends BaseIT {
     @DisplayName("Test find all reminders with date and time functionality")
     void givenFiveReminders_whenGetAllCalledWithDateAndTime_thenReturnPageWithFoundedReminders() throws Exception {
         // given
-        LocalDateTime dateTime = LocalDateTime.of(2025, 3, 16, 9, 0);
+        OffsetDateTime dateTime = OffsetDateTime.of(2025, 3, 16, 9, 0, 0, 0, ZoneOffset.UTC);
         List<Reminder> allReminders = DataUtils.getPageOfRemindersPersisted().getContent()
                 .stream()
                 .peek(reminder -> reminder.setId(null))
                 .toList();
         long expectedSize = allReminders.stream()
-                .filter(reminder -> reminder.getRemind().equals(dateTime))
+                .filter(reminder -> reminder.getRemind().equals(dateTime.toInstant()))
                 .count();
 
         reminderRepository.saveAll(allReminders);
@@ -332,7 +333,7 @@ class ReminderControllerIT extends BaseIT {
         perform.andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.content[0].remind",
-                        CoreMatchers.containsString(dateTime.toString())))
+                        CoreMatchers.containsString(dateTime.toLocalDateTime().toString())))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.content.length()",
                         CoreMatchers.is((int) expectedSize)));
     }
@@ -353,8 +354,8 @@ class ReminderControllerIT extends BaseIT {
         int size = 5;
 
         long expectedSize = allReminders.stream()
-                .filter(reminder -> reminder.getRemind().toLocalDate().isEqual(first.getRemind().toLocalDate()))
-                .filter(reminder -> reminder.getRemind().toLocalTime().equals(first.getRemind().toLocalTime()))
+                .filter(reminder -> reminder.getRemind().atOffset(ZoneOffset.UTC).toLocalDate().isEqual(first.getRemind().atOffset(ZoneOffset.UTC).toLocalDate()))
+                .filter(reminder -> reminder.getRemind().atOffset(ZoneOffset.UTC).toLocalTime().equals(first.getRemind().atOffset(ZoneOffset.UTC).toLocalTime()))
                 .count();
 
         reminderRepository.saveAll(allReminders);
@@ -363,8 +364,8 @@ class ReminderControllerIT extends BaseIT {
         ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
                 .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
                 .param("searchByText", searchKeyword)
-                .param("searchByDate", first.getRemind().toLocalDate().toString())
-                .param("searchByTime", first.getRemind().toLocalTime().toString())
+                .param("searchByDate", first.getRemind().atOffset(ZoneOffset.UTC).toLocalDate().toString())
+                .param("searchByTime", first.getRemind().atOffset(ZoneOffset.UTC).toLocalTime().toString())
                 .param("sort", sortBy)
                 .param("asc", String.valueOf(ascending))
                 .param("page", String.valueOf(page))
@@ -488,13 +489,13 @@ class ReminderControllerIT extends BaseIT {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.content.length()",
                         CoreMatchers.is(allReminders.size())))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.content[0].remind",
-                        CoreMatchers.containsString(sorted.get(0).remind().toString())))
+                        CoreMatchers.containsString(sorted.get(0).remind().toLocalDateTime().toString())))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.content[1].remind",
-                        CoreMatchers.containsString(sorted.get(1).remind().toString())))
+                        CoreMatchers.containsString(sorted.get(1).remind().toLocalDateTime().toString())))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.content[2].remind",
-                        CoreMatchers.containsString(sorted.get(2).remind().toString())))
+                        CoreMatchers.containsString(sorted.get(2).remind().toLocalDateTime().toString())))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.content[3].remind",
-                        CoreMatchers.containsString(sorted.get(3).remind().toString())))
+                        CoreMatchers.containsString(sorted.get(3).remind().toLocalDateTime().toString())))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.sort.sorted",
                         CoreMatchers.is(true)));
     }
@@ -544,13 +545,13 @@ class ReminderControllerIT extends BaseIT {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.content.length()",
                         CoreMatchers.is(allReminders.size())))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.content[0].remind",
-                        CoreMatchers.containsString(sorted.get(0).remind().toString())))
+                        CoreMatchers.containsString(sorted.get(0).remind().toLocalDateTime().toString())))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.content[1].remind",
-                        CoreMatchers.containsString(sorted.get(1).remind().toString())))
+                        CoreMatchers.containsString(sorted.get(1).remind().toLocalDateTime().toString())))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.content[2].remind",
-                        CoreMatchers.containsString(sorted.get(2).remind().toString())))
+                        CoreMatchers.containsString(sorted.get(2).remind().toLocalDateTime().toString())))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.content[3].remind",
-                        CoreMatchers.containsString(sorted.get(3).remind().toString())))
+                        CoreMatchers.containsString(sorted.get(3).remind().toLocalDateTime().toString())))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.sort.sorted",
                         CoreMatchers.is(true)));
     }
@@ -739,7 +740,9 @@ class ReminderControllerIT extends BaseIT {
     @DisplayName("Test find all with few users")
     void givenFiveRemindersTwoForFirstUserThreeForSecond_whenFindAllWithDefaultParamsCalled_thenReturnCorrectReminders() throws Exception {
         // given
-        userRepository.save(new User(null, "email2@mail.com", new TelegramData("telegram", 1233L)));
+        User user = DataUtils.mockUser(null);
+        user.setEmail("email2@mail.com");
+        userRepository.save(user);
         List<Reminder> list = DataUtils.getPageOfRemindersForTwoUsersPersisted()
                 .getContent()
                 .stream()
@@ -764,7 +767,4 @@ class ReminderControllerIT extends BaseIT {
                         CoreMatchers.is(expectedSize)));
     }
 
-    private String remindToDateTimeWithoutMs(LocalDateTime localDateTime) {
-        return localDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm"));
-    }
 }

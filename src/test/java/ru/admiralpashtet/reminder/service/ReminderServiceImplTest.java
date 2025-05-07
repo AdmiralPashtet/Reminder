@@ -12,8 +12,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
-import ru.admiralpashtet.reminder.dto.ReminderRequest;
-import ru.admiralpashtet.reminder.dto.ReminderResponse;
+import ru.admiralpashtet.reminder.dto.request.ReminderRequest;
+import ru.admiralpashtet.reminder.dto.response.ReminderResponse;
 import ru.admiralpashtet.reminder.entity.Reminder;
 import ru.admiralpashtet.reminder.exception.ReminderNotFoundException;
 import ru.admiralpashtet.reminder.mapper.ReminderMapper;
@@ -21,9 +21,7 @@ import ru.admiralpashtet.reminder.repository.ReminderRepository;
 import ru.admiralpashtet.reminder.service.impl.ReminderServiceImpl;
 import ru.admiralpashtet.reminder.util.DataUtils;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
+import java.time.*;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -77,7 +75,7 @@ class ReminderServiceImplTest {
         // given
         Reminder reminderPersisted = DataUtils.getReminderPersisted();
         ReminderRequest reminderRequest =
-                new ReminderRequest("Updated title", "description", LocalDateTime.now());
+                new ReminderRequest("Updated title", "description", OffsetDateTime.now());
 
         BDDMockito.given(reminderRepository.findById(anyLong()))
                 .willReturn(Optional.of(reminderPersisted));
@@ -218,7 +216,7 @@ class ReminderServiceImplTest {
         Page<ReminderResponse> responsePage = DataUtils.getPageOfReminderResponsesForOneUser();
         List<Reminder> allReminders = DataUtils.getPageOfRemindersPersisted().getContent();
         List<Reminder> filtered = allReminders.stream()
-                .filter(reminder -> reminder.getRemind().toLocalDate().equals(date))
+                .filter(reminder -> reminder.getRemind().atOffset(ZoneOffset.UTC).toLocalDate().equals(date))
                 .toList();
         Page<Reminder> filteredPage = new PageImpl<>(filtered, PageRequest.of(0, 10), filtered.size());
 
@@ -253,7 +251,7 @@ class ReminderServiceImplTest {
         Page<ReminderResponse> responsePage = DataUtils.getPageOfReminderResponsesForOneUser();
         List<Reminder> allReminders = DataUtils.getPageOfRemindersPersisted().getContent();
         List<Reminder> filtered = allReminders.stream()
-                .filter(reminder -> reminder.getRemind().toLocalTime().equals(time))
+                .filter(reminder -> reminder.getRemind().atOffset(ZoneOffset.UTC).toLocalTime().equals(time))
                 .toList();
         Page<Reminder> filteredPage = new PageImpl<>(filtered, PageRequest.of(0, 10), filtered.size());
 
@@ -282,11 +280,11 @@ class ReminderServiceImplTest {
     @DisplayName("Test find all reminders with date and time functionality")
     void givenFiveReminders_whenFindAllCalledWithDateAndTime_thenReturnPageWithFoundedReminders() {
         // given
-        LocalDateTime dateTime = LocalDateTime.of(2025, 3, 16, 9, 0);
+        OffsetDateTime dateTime = OffsetDateTime.of(2025, 3, 16, 9, 0, 0, 0, ZoneOffset.UTC);
         Page<ReminderResponse> responsePage = DataUtils.getPageOfReminderResponsesForOneUser();
         List<Reminder> allReminders = DataUtils.getPageOfRemindersPersisted().getContent();
         List<Reminder> filtered = allReminders.stream()
-                .filter(reminder -> reminder.getRemind().equals(dateTime))
+                .filter(reminder -> reminder.getRemind().equals(dateTime.toInstant()))
                 .toList();
         Page<Reminder> filteredPage = new PageImpl<>(filtered, PageRequest.of(0, 10), filtered.size());
 
@@ -318,13 +316,13 @@ class ReminderServiceImplTest {
         // given
         String searchQuery = "meeting";
         Page<ReminderResponse> responsePage = DataUtils.getPageOfReminderResponsesForOneUser();
-        LocalDateTime dateTime = LocalDateTime.of(2025, 3, 16, 9, 0);
+        OffsetDateTime dateTime = OffsetDateTime.of(2025, 3, 16, 9, 0, 0, 0, ZoneOffset.UTC);
         List<Reminder> allReminders = DataUtils.getPageOfRemindersPersisted().getContent();
         List<Reminder> filteredReminders = allReminders.stream()
                 .filter(r -> (r.getTitle().toLowerCase().contains(searchQuery.toLowerCase())
                         || r.getDescription().toLowerCase().contains(searchQuery.toLowerCase()))
-                        && r.getRemind().toLocalDate().equals(dateTime.toLocalDate())
-                        && r.getRemind().toLocalTime().equals(dateTime.toLocalTime()))
+                        && r.getRemind().atOffset(ZoneOffset.UTC).toLocalDate().equals(dateTime.toLocalDate())
+                        && r.getRemind().atOffset(ZoneOffset.UTC).toLocalTime().equals(dateTime.toLocalTime()))
                 .toList();
         Page<Reminder> filteredPage = new PageImpl<>(filteredReminders, PageRequest.of(0, 10), filteredReminders.size());
 
@@ -452,8 +450,8 @@ class ReminderServiceImplTest {
         assertThat(result).isNotNull();
         List<ReminderResponse> content = result.getContent();
         for (int i = 0; i < content.size() - 1; i++) {
-            LocalDateTime current = content.get(i).remind();
-            LocalDateTime next = content.get(i + 1).remind();
+            OffsetDateTime current = content.get(i).remind();
+            OffsetDateTime next = content.get(i + 1).remind();
             assertThat(current.isBefore(next) || current.isEqual(next)).isTrue();
         }
     }
@@ -506,8 +504,8 @@ class ReminderServiceImplTest {
         assertThat(result).isNotNull();
         List<ReminderResponse> content = result.getContent();
         for (int i = 0; i < content.size() - 1; i++) {
-            LocalDateTime current = content.get(i).remind();
-            LocalDateTime next = content.get(i + 1).remind();
+            OffsetDateTime current = content.get(i).remind();
+            OffsetDateTime next = content.get(i + 1).remind();
             assertThat(current.isEqual(next) || current.isAfter(next)).isTrue();
         }
     }

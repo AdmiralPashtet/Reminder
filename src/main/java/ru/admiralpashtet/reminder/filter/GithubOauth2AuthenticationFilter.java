@@ -46,7 +46,7 @@ public class GithubOauth2AuthenticationFilter extends OncePerRequestFilter {
                                     FilterChain filterChain) throws ServletException, IOException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        if (authentication == null) {
+        if (authentication == null && request.getHeader(HttpHeaders.AUTHORIZATION) != null) {
             String token = request.getHeader(HttpHeaders.AUTHORIZATION).substring(7);
             if (!JwtUtil.isJwt(token)) {
                 String email = fetchEmailFromGithub(token);

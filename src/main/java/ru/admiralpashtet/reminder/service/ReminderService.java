@@ -1,12 +1,13 @@
 package ru.admiralpashtet.reminder.service;
 
 import org.springframework.data.domain.Page;
-import ru.admiralpashtet.reminder.dto.ReminderRequest;
-import ru.admiralpashtet.reminder.dto.ReminderResponse;
+import ru.admiralpashtet.reminder.dto.request.ReminderRequest;
+import ru.admiralpashtet.reminder.dto.response.ReminderResponse;
 import ru.admiralpashtet.reminder.entity.Reminder;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 
 public interface ReminderService {
@@ -19,5 +20,5 @@ public interface ReminderService {
 
     void deleteById(Long reminderId, Long userId);
 
-    List<Reminder> findAllByLocalDateTimeNow();
+    List<Reminder> findAllByRemindBetween(OffsetDateTime from, OffsetDateTime to);
 }

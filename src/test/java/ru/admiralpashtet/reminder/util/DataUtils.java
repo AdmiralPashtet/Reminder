@@ -6,14 +6,18 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
-import ru.admiralpashtet.reminder.dto.ReminderRequest;
-import ru.admiralpashtet.reminder.dto.ReminderResponse;
+import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.chat.Chat;
+import org.telegram.telegrambots.meta.api.objects.message.Message;
+import ru.admiralpashtet.reminder.dto.request.ReminderRequest;
+import ru.admiralpashtet.reminder.dto.response.ReminderResponse;
 import ru.admiralpashtet.reminder.entity.CustomUserPrincipal;
 import ru.admiralpashtet.reminder.entity.Reminder;
 import ru.admiralpashtet.reminder.entity.TelegramData;
 import ru.admiralpashtet.reminder.entity.User;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -27,35 +31,35 @@ public class DataUtils {
                         1L,
                         "Reminder1: Meeting Notes",
                         "Prepare notes for team meeting",
-                        LocalDateTime.of(2025, 3, 16, 9, 0),
+                        OffsetDateTime.of(2025, 3, 16, 9, 0, 0, 0, ZoneOffset.UTC).toInstant(),
                         mockUser()
                 ),
                 new Reminder(
                         2L,
                         "Reminder4: Project Plan",
                         "Draft plan for next meeting",
-                        LocalDateTime.of(2025, 3, 16, 14, 0),
+                        OffsetDateTime.of(2025, 3, 16, 14, 0, 0, 0, ZoneOffset.UTC).toInstant(),
                         mockUser()
                 ),
                 new Reminder(
                         3L,
                         "Reminder2: Team Review",
                         "Review team progress notes",
-                        LocalDateTime.of(2025, 3, 17, 11, 0),
+                        OffsetDateTime.of(2025, 3, 17, 11, 0, 0, 0, ZoneOffset.UTC).toInstant(),
                         mockUser()
                 ),
                 new Reminder(
                         4L,
                         "Reminder5: Task List",
                         "Update task list for project",
-                        LocalDateTime.of(2025, 3, 17, 15, 0),
+                        OffsetDateTime.of(2025, 3, 17, 15, 0, 0, 0, ZoneOffset.UTC).toInstant(),
                         mockUser()
                 ),
                 new Reminder(
                         5L,
                         "Reminder3: Budget Plan",
                         "Plan budget for next quarter",
-                        LocalDateTime.of(2025, 3, 18, 10, 0),
+                        OffsetDateTime.of(2025, 3, 18, 10, 0, 0, 0, ZoneOffset.UTC).toInstant(),
                         mockUser()
                 )
         ), PageRequest.of(0, 10), 5);
@@ -67,36 +71,36 @@ public class DataUtils {
                         1L,
                         "Reminder1: Meeting Notes",
                         "Prepare notes for team meeting",
-                        LocalDateTime.of(2025, 3, 16, 9, 0),
+                        OffsetDateTime.of(2025, 3, 16, 9, 0, 0, 0, ZoneOffset.UTC).toInstant(),
                         mockUser()
                 ),
                 new Reminder(
                         2L,
                         "Reminder4: Project Plan",
                         "Draft plan for next meeting",
-                        LocalDateTime.of(2025, 3, 16, 14, 0),
+                        OffsetDateTime.of(2025, 3, 16, 14, 0, 0, 0, ZoneOffset.UTC).toInstant(),
                         mockUser()
                 ),
                 new Reminder(
                         3L,
                         "Reminder2: Team Review",
                         "Review team progress notes",
-                        LocalDateTime.of(2025, 3, 17, 11, 0),
-                        mockUser(2)
+                        OffsetDateTime.of(2025, 3, 17, 11, 0, 0, 0, ZoneOffset.UTC).toInstant(),
+                        mockUser(2L)
                 ),
                 new Reminder(
                         4L,
                         "Reminder5: Task List",
                         "Update task list for project",
-                        LocalDateTime.of(2025, 3, 17, 15, 0),
-                        mockUser(2)
+                        OffsetDateTime.of(2025, 3, 17, 15, 0, 0, 0, ZoneOffset.UTC).toInstant(),
+                        mockUser(2L)
                 ),
                 new Reminder(
                         5L,
                         "Reminder3: Budget Plan",
                         "Plan budget for next quarter",
-                        LocalDateTime.of(2025, 3, 18, 10, 0),
-                        mockUser(2)
+                        OffsetDateTime.of(2025, 3, 18, 10, 0, 0, 0, ZoneOffset.UTC).toInstant(),
+                        mockUser(2L)
                 )
         ), PageRequest.of(0, 10), 5);
     }
@@ -119,35 +123,35 @@ public class DataUtils {
                         1L,
                         "Reminder1: Meeting Notes",
                         "Prepare notes for team meeting",
-                        LocalDateTime.of(2025, 3, 16, 9, 0),
+                        OffsetDateTime.of(2025, 3, 16, 9, 0, 0, 0, ZoneOffset.UTC),
                         1
                 ),
                 new ReminderResponse(
                         2L,
                         "Reminder4: Project Plan",
                         "Draft plan for next meeting",
-                        LocalDateTime.of(2025, 3, 16, 14, 0),
+                        OffsetDateTime.of(2025, 3, 16, 14, 0, 0, 0, ZoneOffset.UTC),
                         1
                 ),
                 new ReminderResponse(
                         3L,
                         "Reminder2: Team Review",
                         "Review team progress notes",
-                        LocalDateTime.of(2025, 3, 17, 11, 0),
+                        OffsetDateTime.of(2025, 3, 17, 11, 0, 0, 0, ZoneOffset.UTC),
                         1
                 ),
                 new ReminderResponse(
                         4L,
                         "Reminder5: Task List",
                         "Update task list for project",
-                        LocalDateTime.of(2025, 3, 17, 15, 0),
+                        OffsetDateTime.of(2025, 3, 17, 15, 0, 0, 0, ZoneOffset.UTC),
                         1
                 ),
                 new ReminderResponse(
                         5L,
                         "Reminder3: Budget Plan",
                         "Plan budget for next quarter",
-                        LocalDateTime.of(2025, 3, 18, 10, 0),
+                        OffsetDateTime.of(2025, 3, 18, 10, 0, 0, 0, ZoneOffset.UTC),
                         1
                 )
         ), PageRequest.of(0, 10), 5);
@@ -156,27 +160,39 @@ public class DataUtils {
     }
 
     public static ReminderRequest getReminderRequest() {
-        return new ReminderRequest("Title", "Description", LocalDateTime.now().plusDays(1));
+        return new ReminderRequest("Title", "Description", OffsetDateTime.now().plusDays(1));
     }
 
     public static ReminderResponse getReminderResponse() {
-        return new ReminderResponse(1L, "Title", "Description", LocalDateTime.now().plusDays(1), 1);
+        return new ReminderResponse(1L, "Title", "Description", OffsetDateTime.now().plusDays(1), 1);
     }
 
     public static Reminder getReminderTransient() {
-        return new Reminder(null, "Title", "Description", LocalDateTime.now().plusDays(1), mockUser());
+        return new Reminder(null, "Title", "Description", OffsetDateTime.now().plusDays(1).toInstant(), mockUser());
     }
 
     public static Reminder getReminderPersisted() {
-        return new Reminder(1L, "Title", "Description", LocalDateTime.now().plusDays(1), mockUser());
+        return new Reminder(1L, "Title", "Description", OffsetDateTime.now().plusDays(1).toInstant(), mockUser());
     }
 
     public static User mockUser() {
-        return new User(1L, "email@mail.com", new TelegramData("telegram", 1233L));
+        User user = new User();
+        user.setId(1L);
+        user.setEmail("email@mail.com");
+        user.setReminderEmail("email@mail.com");
+        user.setTelegramData(new TelegramData("telegram", 1233L));
+        user.setTimeZone("UTC");
+        return user;
     }
 
-    public static User mockUser(long id) {
-        return new User(id, "email@mail.com", new TelegramData("telegram", 1233L));
+    public static User mockUser(Long id) {
+        User user = new User();
+        user.setId(id);
+        user.setEmail("email@mail.com");
+        user.setReminderEmail("email@mail.com");
+        user.setTelegramData(new TelegramData("telegram", 1233L));
+        user.setTimeZone("UTC");
+        return user;
     }
 
     public static CustomUserPrincipal mockCustomUserPrincipal() {
@@ -184,6 +200,7 @@ public class DataUtils {
         testUser.setId(1L);
         testUser.setEmail("email@mail.com");
         testUser.setTelegramData(new TelegramData("telegram", 1233L));
+        testUser.setTimeZone("UTC");
         return new CustomUserPrincipal(testUser);
     }
 
@@ -217,4 +234,13 @@ public class DataUtils {
         return SecurityMockMvcRequestPostProcessors.authentication(authenticationToken);
     }
 
+    public static Update createUpdate(String text, String username, long chatId) {
+        Update update = new Update();
+        Message message = new Message();
+        message.setChat(new Chat(123L, "private"));
+        message.setText(text);
+        message.setFrom(new org.telegram.telegrambots.meta.api.objects.User(1L, username, false));
+        update.setMessage(message);
+        return update;
+    }
 }

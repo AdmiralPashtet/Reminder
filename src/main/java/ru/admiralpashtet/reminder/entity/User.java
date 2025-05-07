@@ -2,16 +2,15 @@ package ru.admiralpashtet.reminder.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.util.List;
 
 @Entity
 @Table(name = "Users")
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
 public class User {
     @Id
@@ -22,14 +21,18 @@ public class User {
     private String reminderEmail;
     @Embedded
     @AttributeOverrides({
-            @AttributeOverride(name = "userName", column = @Column(name = "telegram_username")),
+            @AttributeOverride(name = "username", column = @Column(name = "telegram_username")),
             @AttributeOverride(name = "chatId", column = @Column(name = "telegram_chat_id"))})
     private TelegramData telegramData;
+    private String timeZone;
     @OneToMany(mappedBy = "user", orphanRemoval = true)
+    @ToString.Exclude
     private List<Reminder> reminders;
 
     @PrePersist
-    private void setUpDefaultNotificationEmail() {
+    private void setUpDefaultData() {
         reminderEmail = email;
+        timeZone = "UTC";
+        telegramData = new TelegramData("null", null);
     }
 }

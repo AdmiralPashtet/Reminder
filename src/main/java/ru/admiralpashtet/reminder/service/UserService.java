@@ -1,17 +1,19 @@
 package ru.admiralpashtet.reminder.service;
 
-import ru.admiralpashtet.reminder.dto.NotificationSettingsRequest;
-import ru.admiralpashtet.reminder.dto.UserResponse;
+import ru.admiralpashtet.reminder.dto.request.UserSettingsRequest;
+import ru.admiralpashtet.reminder.dto.response.UserResponse;
 import ru.admiralpashtet.reminder.entity.User;
 
 public interface UserService {
     User createOrGetByEmail(String email);
 
-    User findByTelegramDataUserName(String telegramUserName);
+    User findByTelegramDataUsername(String telegramUsername);
 
-    UserResponse updateNotificationSettings(NotificationSettingsRequest settingsRequest, Long userId);
+    UserResponse updateNotificationSettings(UserSettingsRequest settingsRequest, Long userId);
 
     UserResponse update(User user, Long userId);
+
+    UserResponse findById(Long userId);
 
     void deleteById(Long userId);
 }

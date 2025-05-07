@@ -5,8 +5,9 @@ import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Entity
 @Table(name = "Reminders")
@@ -20,9 +21,10 @@ public class Reminder {
     private String title;
     private String description;
     @NotNull
-    private LocalDateTime remind;
+    private Instant remind;
     @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     @NotNull
+    @ToString.Exclude
     private User user;
 }

@@ -19,24 +19,21 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import ru.admiralpashtet.reminder.config.TestConfig;
-import ru.admiralpashtet.reminder.dto.ReminderRequest;
-import ru.admiralpashtet.reminder.dto.ReminderResponse;
+import ru.admiralpashtet.reminder.dto.request.ReminderRequest;
+import ru.admiralpashtet.reminder.dto.response.ReminderResponse;
 import ru.admiralpashtet.reminder.entity.CustomUserPrincipal;
 import ru.admiralpashtet.reminder.entity.Reminder;
 import ru.admiralpashtet.reminder.exception.AccessDeniedException;
 import ru.admiralpashtet.reminder.exception.ReminderNotFoundException;
+import ru.admiralpashtet.reminder.mapper.MapperHelper;
 import ru.admiralpashtet.reminder.mapper.ReminderMapper;
 import ru.admiralpashtet.reminder.mapper.ReminderMapperImpl;
-import ru.admiralpashtet.reminder.mapper.UserMapperHelper;
 import ru.admiralpashtet.reminder.repository.UserRepository;
 import ru.admiralpashtet.reminder.service.ReminderService;
 import ru.admiralpashtet.reminder.service.UserService;
 import ru.admiralpashtet.reminder.util.DataUtils;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
+import java.time.*;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -48,7 +45,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(ReminderController.class)
-@Import({TestConfig.class, ReminderMapperImpl.class, UserMapperHelper.class})
+@Import({TestConfig.class, ReminderMapperImpl.class, MapperHelper.class})
 class ReminderControllerTest {
     @MockitoBean
     private ReminderService reminderService;
@@ -85,7 +82,8 @@ class ReminderControllerTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.id", CoreMatchers.notNullValue()))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.title", CoreMatchers.is(reminderResponse.title())))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.description", CoreMatchers.is(reminderResponse.description())))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.remind", CoreMatchers.startsWith(remindToDateTimeWithoutMs(reminderResponse.remind()))))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.remind",
+                        CoreMatchers.containsString(reminderResponse.remind().toString().substring(0, 18))))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.userId", CoreMatchers.is(reminderResponse.userId())));
     }
 
@@ -95,7 +93,7 @@ class ReminderControllerTest {
         // given
         long id = 1;
         ReminderRequest reminderRequest =
-                new ReminderRequest("Updated title", "description", LocalDateTime.now());
+                new ReminderRequest("Updated title", "description", OffsetDateTime.now());
         ReminderResponse reminderResponse = new ReminderResponse(1L, reminderRequest.title(),
                 reminderRequest.description(), reminderRequest.remind(), 1);
 
@@ -263,10 +261,11 @@ class ReminderControllerTest {
         LocalDate date = LocalDateTime.of(2025, 3, 16, 9, 0).toLocalDate();
         List<Reminder> allReminders = DataUtils.getPageOfRemindersPersisted().getContent();
         List<ReminderResponse> filtered = allReminders.stream()
-                .filter(reminder -> reminder.getRemind().toLocalDate().equals(date))
                 .map(reminderMapper::toResponseDTO)
+                .filter(reminder -> reminder.remind().toLocalDate().equals(date))
                 .toList();
-        Page<ReminderResponse> filteredPage = new PageImpl<>(filtered, PageRequest.of(0, 10), allReminders.size());
+        Page<ReminderResponse> filteredPage =
+                new PageImpl<>(filtered, PageRequest.of(0, 10), allReminders.size());
 
         BDDMockito.when(reminderService.findAll(
                         isNotNull(),
@@ -295,13 +294,15 @@ class ReminderControllerTest {
     @DisplayName("Test find all reminders with time functionality")
     void givenFiveReminders_whenFindAllCalledWithTime_thenReturnPageWithFoundedReminders() throws Exception {
         // given
-        LocalTime time = LocalDateTime.of(2025, 3, 16, 9, 0).toLocalTime();
+        LocalTime time = OffsetDateTime.of(2025, 3, 16, 9, 0, 0,
+                0, ZoneOffset.UTC).toLocalTime();
         List<Reminder> allReminders = DataUtils.getPageOfRemindersPersisted().getContent();
         List<ReminderResponse> filtered = allReminders.stream()
-                .filter(reminder -> reminder.getRemind().toLocalTime().equals(time))
                 .map(reminderMapper::toResponseDTO)
+                .filter(reminder -> reminder.remind().toLocalTime().equals(time))
                 .toList();
-        Page<ReminderResponse> filteredPage = new PageImpl<>(filtered, PageRequest.of(0, 10), allReminders.size());
+        Page<ReminderResponse> filteredPage = new PageImpl<>(filtered, PageRequest.of(0, 10),
+                allReminders.size());
 
         BDDMockito.when(reminderService.findAll(
                         isNotNull(),
@@ -322,7 +323,7 @@ class ReminderControllerTest {
         // then
         perform.andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.content[0].remind", CoreMatchers.endsWith(time.toString())))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.content[0].remind", CoreMatchers.containsString("T" + time)))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.content.length()", CoreMatchers.is(filtered.size())));
     }
 
@@ -330,10 +331,10 @@ class ReminderControllerTest {
     @DisplayName("Test find all reminders with date and time functionality")
     void givenFiveReminders_whenFindAllCalledWithDateAndTime_thenReturnPageWithFoundedReminders() throws Exception {
         // given
-        LocalDateTime dateTime = LocalDateTime.of(2025, 3, 16, 9, 0);
+        OffsetDateTime dateTime = OffsetDateTime.of(2025, 3, 16, 9, 0, 0, 0, ZoneOffset.UTC);
         List<Reminder> allReminders = DataUtils.getPageOfRemindersPersisted().getContent();
         List<ReminderResponse> filtered = allReminders.stream()
-                .filter(reminder -> reminder.getRemind().equals(dateTime))
+                .filter(reminder -> reminder.getRemind().equals(dateTime.toInstant()))
                 .map(reminderMapper::toResponseDTO)
                 .toList();
         Page<ReminderResponse> filteredPage = new PageImpl<>(filtered, PageRequest.of(0, 10), allReminders.size());
@@ -358,9 +359,8 @@ class ReminderControllerTest {
         // then
         perform.andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.content[0].remind", CoreMatchers.containsString(dateTime.toString())))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.content[0].remind", CoreMatchers.containsString(dateTime.toLocalDateTime().toString())))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.content.length()", CoreMatchers.is(filtered.size())));
-
     }
 
     @Test
@@ -369,28 +369,32 @@ class ReminderControllerTest {
         // given
         List<Reminder> allReminders = DataUtils.getPageOfRemindersPersisted().getContent();
         Reminder first = allReminders.getFirst();
+
+        OffsetDateTime firstOdt = first.getRemind().atOffset(ZoneOffset.UTC);
+        LocalDate filterDate = firstOdt.toLocalDate();
+        LocalTime filterTime = firstOdt.toLocalTime();
+
         String searchKeyword = "meeting";
         String sortBy = "title";
         boolean ascending = true;
         int page = 0;
         int size = 5;
 
-
         List<ReminderResponse> sorted = allReminders.stream()
                 .sorted(Comparator.comparing(Reminder::getTitle))
-                .filter(reminder -> reminder.getRemind().toLocalDate().isEqual(first.getRemind().toLocalDate()))
-                .filter(reminder -> reminder.getRemind().toLocalTime().equals(first.getRemind().toLocalTime()))
                 .map(reminderMapper::toResponseDTO)
+                .filter(reminder -> reminder.remind().toLocalDate().isEqual(filterDate))
+                .filter(reminder -> reminder.remind().toLocalTime().equals(filterTime))
                 .toList();
         Page<ReminderResponse> sortedPage = new PageImpl<>(sorted,
                 PageRequest.of(0, allReminders.size(), Sort.by(Sort.Direction.ASC, sortBy)),
-                allReminders.size());
+                sorted.size());
 
         BDDMockito.when(reminderService.findAll(
                         isNotNull(),
                         eq(searchKeyword),
-                        eq(first.getRemind().toLocalDate()),
-                        eq(first.getRemind().toLocalTime()),
+                        eq(filterDate),
+                        eq(filterTime),
                         eq(sortBy),
                         eq(ascending),
                         eq(page),
@@ -401,8 +405,8 @@ class ReminderControllerTest {
         ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
                 .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
                 .param("searchByText", searchKeyword)
-                .param("searchByDate", first.getRemind().toLocalDate().toString())
-                .param("searchByTime", first.getRemind().toLocalTime().toString())
+                .param("searchByDate", filterDate.toString())
+                .param("searchByTime", filterTime.toString())
                 .param("sort", sortBy)
                 .param("asc", String.valueOf(ascending))
                 .param("page", String.valueOf(page))
@@ -428,7 +432,7 @@ class ReminderControllerTest {
                 .toList();
         Page<ReminderResponse> sortedPage = new PageImpl<>(sorted,
                 PageRequest.of(0, allReminders.size(), Sort.by(Sort.Direction.ASC, sortBy)),
-                allReminders.size());
+                sorted.size());
 
         BDDMockito.when(reminderService.findAll(
                         isNotNull(),
@@ -505,7 +509,7 @@ class ReminderControllerTest {
                 .toList();
         Page<ReminderResponse> sortedPage = new PageImpl<>(sorted,
                 PageRequest.of(0, allReminders.size(), Sort.by(Sort.Direction.ASC, sortBy)),
-                allReminders.size());
+                sorted.size());
 
         BDDMockito.when(reminderService.findAll(
                         isNotNull(),
@@ -562,7 +566,7 @@ class ReminderControllerTest {
         Page<ReminderResponse> sortedPage =
                 new PageImpl<>(sortedReminderResponse,
                         PageRequest.of(0, allReminders.size(), Sort.by(Sort.Direction.DESC, sortBy)),
-                        allReminders.size());
+                        sortedReminderResponse.size());
 
         BDDMockito.when(reminderService.findAll(
                         isNotNull(),
@@ -677,7 +681,7 @@ class ReminderControllerTest {
         // given
         long id = 1;
         ReminderRequest reminderRequest =
-                new ReminderRequest("Updated title", "description", LocalDateTime.now());
+                new ReminderRequest("Updated title", "description", OffsetDateTime.now());
 
         BDDMockito.given(reminderService.update(
                         any(ReminderRequest.class), anyLong(), anyLong()))
@@ -711,7 +715,7 @@ class ReminderControllerTest {
         Page<ReminderResponse> filteredPage =
                 new PageImpl<>(filtered,
                         PageRequest.of(0, allReminders.size(), Sort.by(Sort.Direction.DESC, sortBy)),
-                        allReminders.size());
+                        filtered.size());
 
         BDDMockito.when(reminderService.findAll(
                         isNotNull(),
@@ -732,9 +736,5 @@ class ReminderControllerTest {
         perform.andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.content.length()", CoreMatchers.is(filtered.size())));
-    }
-
-    private String remindToDateTimeWithoutMs(LocalDateTime localDateTime) {
-        return localDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm"));
     }
 }

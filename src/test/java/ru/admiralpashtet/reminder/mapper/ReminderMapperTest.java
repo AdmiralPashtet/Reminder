@@ -5,32 +5,31 @@ import org.junit.jupiter.api.Test;
 import org.mockito.BDDMockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.telegram.telegrambots.longpolling.starter.TelegramBotInitializer;
-import ru.admiralpashtet.reminder.dto.ReminderRequest;
-import ru.admiralpashtet.reminder.dto.ReminderResponse;
+import ru.admiralpashtet.reminder.dto.request.ReminderRequest;
+import ru.admiralpashtet.reminder.dto.response.ReminderResponse;
 import ru.admiralpashtet.reminder.entity.Reminder;
 import ru.admiralpashtet.reminder.entity.User;
+import ru.admiralpashtet.reminder.it.BaseIT;
 import ru.admiralpashtet.reminder.repository.UserRepository;
 import ru.admiralpashtet.reminder.service.impl.EmailNotificationSenderService;
 import ru.admiralpashtet.reminder.service.impl.TelegramNotificationSenderService;
+import ru.admiralpashtet.reminder.telegram.listener.TelegramUpdateListener;
+import ru.admiralpashtet.reminder.telegram.sender.TelegramMessageSender;
 import ru.admiralpashtet.reminder.util.DataUtils;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.anyLong;
 
-
 @SpringBootTest
-@ActiveProfiles("test")
-class ReminderMapperTest {
+class ReminderMapperTest extends BaseIT {
     @Autowired
     private ReminderMapper reminderMapper;
-
     @MockitoBean
     private UserRepository userRepository;
     @MockitoBean
@@ -39,6 +38,10 @@ class ReminderMapperTest {
     private TelegramNotificationSenderService telegramNotificationSenderService;
     @MockitoBean
     private TelegramBotInitializer telegramBotInitializer;
+    @MockitoBean
+    private TelegramMessageSender telegramMessageSender;
+    @MockitoBean
+    private TelegramUpdateListener telegramUpdateListener;
 
     private User testUser;
 
@@ -87,7 +90,7 @@ class ReminderMapperTest {
     void givenExistsEntityAndRequestDto_whenUpdateEntityFromDtoCalled_thenEntityUpdated() {
         // given
         ReminderRequest request =
-                new ReminderRequest("new title", "new description", LocalDateTime.now());
+                new ReminderRequest("new title", "new description", OffsetDateTime.now());
         Reminder reminder = DataUtils.getReminderPersisted();
 
         // when
@@ -96,6 +99,6 @@ class ReminderMapperTest {
         // then
         assertEquals(reminder.getTitle(), request.title());
         assertEquals(reminder.getDescription(), request.description());
-        assertEquals(reminder.getRemind(), request.remind());
+        assertEquals(reminder.getRemind(), request.remind().toInstant());
     }
 }

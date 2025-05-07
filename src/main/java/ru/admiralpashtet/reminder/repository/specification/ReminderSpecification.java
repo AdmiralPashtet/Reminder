@@ -1,12 +1,16 @@
 package ru.admiralpashtet.reminder.repository.specification;
 
+import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.core.context.SecurityContextHolder;
+import ru.admiralpashtet.reminder.entity.CustomUserPrincipal;
 import ru.admiralpashtet.reminder.entity.Reminder;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,21 +23,28 @@ public class ReminderSpecification {
         if (userId == null || userId == 0) {
             throw new IllegalArgumentException("User id must not be null and must be greater then zero");
         }
+
         return (root, query, criteriaBuilder) ->
                 criteriaBuilder.equal(root.get("user").get("id"), userId);
     }
 
     public static Specification<Reminder> hasDateAndTime(LocalDate date, LocalTime time) {
         return (root, query, criteriaBuilder) -> {
+            Path<OffsetDateTime> path = root.get("remind");
+            ZoneId zoneId = ZoneId.of(((CustomUserPrincipal) SecurityContextHolder.getContext()
+                    .getAuthentication().getPrincipal()).getTimeZone());
+
             if (date != null && time != null) {
-                LocalDateTime localDateTime = LocalDateTime.of(date, time);
-                return criteriaBuilder.equal(root.get("remind"), localDateTime);
+                OffsetDateTime offsetDateTime = date.atTime(time).atZone(zoneId).toOffsetDateTime();
+                return criteriaBuilder.equal(path, offsetDateTime);
             } else if (date != null) {
-                return criteriaBuilder.between(root.get("remind"),
-                        LocalDateTime.of(date, LocalTime.of(0, 0, 0)),
-                        LocalDateTime.of(date, LocalTime.of(23, 59, 59)));
+                OffsetDateTime start = date.atStartOfDay(zoneId).toOffsetDateTime();
+                OffsetDateTime end = date.atTime(LocalTime.MAX).atZone(zoneId).toOffsetDateTime();
+                return criteriaBuilder.between(path, start, end);
             } else if (time != null) {
-                return criteriaBuilder.equal(root.get("remind"), LocalDateTime.of(LocalDate.now(), time));
+                LocalDate today = LocalDate.now();
+                OffsetDateTime atTime = today.atTime(time).atZone(zoneId).toOffsetDateTime();
+                return criteriaBuilder.equal(path, atTime);
             }
 
             throw new IllegalArgumentException("Expected date or/and time parameter");
