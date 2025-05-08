@@ -47,7 +47,7 @@ public class ReminderController {
 
     @GetMapping
     @Operation(summary = "Get all reminders by search filters")
-    public ResponseEntity<Page<ReminderResponse>> getAll(@RequestParam(name = "searchByText", required = false)
+    public ResponseEntity<Page<ReminderResponse>> getAll(@Valid @RequestParam(name = "searchByText", required = false)
                                                          @Size(max = 255,
                                                                  message = "Search query must be less then 255 characters")
                                                          @Parameter(description = "Search query. " +

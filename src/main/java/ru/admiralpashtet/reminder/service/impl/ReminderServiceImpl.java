@@ -86,6 +86,8 @@ public class ReminderServiceImpl implements ReminderService {
 
     @Override
     public List<Reminder> findAllByLocalDateTimeNow() {
-        return reminderRepository.findAllByRemind(LocalDateTime.now());
+        LocalDateTime from = LocalDateTime.now().withSecond(0).withNano(0);
+        LocalDateTime to = LocalDateTime.now().withSecond(59).withNano(0);
+        return reminderRepository.findAllByRemindBetween(from, to);
     }
 }

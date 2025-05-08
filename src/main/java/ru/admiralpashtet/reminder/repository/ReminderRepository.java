@@ -10,5 +10,5 @@ import java.util.List;
 
 @Repository
 public interface ReminderRepository extends JpaRepository<Reminder, Long>, JpaSpecificationExecutor<Reminder> {
-    List<Reminder> findAllByRemind(LocalDateTime localDateTime);
+    List<Reminder> findAllByRemindBetween(LocalDateTime from, LocalDateTime to);
 }

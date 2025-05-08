@@ -13,10 +13,6 @@ spring:
     show-sql: true
     hibernate:
       ddl-auto: validate
-    properties:
-      hibernate:
-        jdbc:
-          time_zone: UTC
   mvc:
     hiddenmethod:
       filter:
@@ -40,6 +36,8 @@ spring:
       resourceserver:
         jwt:
           issuer-uri: https://accounts.google.com
+  jackson:
+    time-zone: Europe/Moscow
   mail:
     host: smtp.gmail.com
     port: 587
