@@ -8,7 +8,7 @@ import ru.admiralpashtet.reminder.repository.UserRepository;
 
 @Component
 @RequiredArgsConstructor
-public class UserMapperHelper {
+public class MapperHelper {
     private final UserRepository userRepository;
 
     @Named("idToUser")

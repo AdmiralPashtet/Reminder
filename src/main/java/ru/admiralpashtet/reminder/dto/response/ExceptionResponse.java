@@ -1,4 +1,4 @@
-package ru.admiralpashtet.reminder.dto;
+package ru.admiralpashtet.reminder.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

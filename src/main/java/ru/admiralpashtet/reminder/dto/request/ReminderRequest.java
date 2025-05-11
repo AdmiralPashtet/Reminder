@@ -1,6 +1,7 @@
-package ru.admiralpashtet.reminder.dto;
+package ru.admiralpashtet.reminder.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
@@ -13,7 +14,6 @@ public record ReminderRequest(
         String description,
         @NotNull(message = "Date and time cannot be null. ISO format expected")
         @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm")
-        LocalDateTime remind,
-        @NotNull(message = "The reminder must have user id")
-        Integer userId) {
+        @Schema(example = "2025-05-06T16:41")
+        LocalDateTime remind) {
 }

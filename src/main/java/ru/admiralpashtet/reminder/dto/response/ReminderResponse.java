@@ -1,4 +1,4 @@
-package ru.admiralpashtet.reminder.dto;
+package ru.admiralpashtet.reminder.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 

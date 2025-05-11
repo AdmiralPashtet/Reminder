@@ -8,18 +8,23 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import ru.admiralpashtet.reminder.dto.ReminderRequest;
-import ru.admiralpashtet.reminder.dto.ReminderResponse;
+import org.telegram.telegrambots.longpolling.starter.TelegramBotInitializer;
+import ru.admiralpashtet.reminder.dto.request.ReminderRequest;
+import ru.admiralpashtet.reminder.dto.response.ReminderResponse;
 import ru.admiralpashtet.reminder.entity.Reminder;
 import ru.admiralpashtet.reminder.entity.User;
 import ru.admiralpashtet.reminder.mapper.ReminderMapper;
 import ru.admiralpashtet.reminder.repository.ReminderRepository;
 import ru.admiralpashtet.reminder.repository.UserRepository;
+import ru.admiralpashtet.reminder.service.impl.EmailNotificationSenderService;
+import ru.admiralpashtet.reminder.service.impl.TelegramNotificationSenderService;
+import ru.admiralpashtet.reminder.telegram.listener.TelegramUpdateListener;
+import ru.admiralpashtet.reminder.telegram.sender.TelegramMessageSender;
 import ru.admiralpashtet.reminder.util.DataUtils;
 
 import java.time.LocalDate;
@@ -36,9 +41,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+
 @AutoConfigureMockMvc
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@Testcontainers
+@TestInstance(TestInstance.Lifecycle.PER_CLASS) // чтобы можно было использовать нестатический метод в @BeforeAll
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class ReminderControllerIT extends BaseIT {
     @Autowired
@@ -51,10 +56,21 @@ class ReminderControllerIT extends BaseIT {
     private ObjectMapper objectMapper;
     @Autowired
     private ReminderMapper reminderMapper;
+    @MockitoBean
+    private EmailNotificationSenderService emailNotificationSenderService;
+    @MockitoBean
+    private TelegramNotificationSenderService telegramNotificationSenderService;
+    @MockitoBean
+    private TelegramBotInitializer telegramBotInitializer;
+    @MockitoBean
+    private TelegramMessageSender telegramMessageSender;
+    @MockitoBean
+    private TelegramUpdateListener telegramUpdateListener;
+
 
     @BeforeAll
     void userInit() {
-        userRepository.save(new User(null, "email@mail.com", "telegram"));
+        userRepository.save(DataUtils.mockUser(null));
     }
 
     @BeforeEach
@@ -69,7 +85,8 @@ class ReminderControllerIT extends BaseIT {
         ReminderRequest reminderRequest = DataUtils.getReminderRequest();
 
         // when
-        ResultActions perform = mockMvc.perform(post("/api/v1/reminders/create")
+        ResultActions perform = mockMvc.perform(post("/api/v1/reminders")
+                .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(reminderRequest)));
 
@@ -83,9 +100,11 @@ class ReminderControllerIT extends BaseIT {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.description",
                         CoreMatchers.is(reminderRequest.description())))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.remind",
+//                        CoreMatchers.startsWith(reminderRequest.remind().toString().substring(0, 17))))
+//                .andExpect(MockMvcResultMatchers.jsonPath("$.remind",
                         CoreMatchers.startsWith(remindToDateTimeWithoutMs(reminderRequest.remind()))))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.userId",
-                        CoreMatchers.is(reminderRequest.userId())));
+                        CoreMatchers.notNullValue()));
     }
 
     @Test
@@ -94,12 +113,13 @@ class ReminderControllerIT extends BaseIT {
         // given
         Reminder reminderTransient = DataUtils.getReminderTransient();
         ReminderRequest reminderRequest =
-                new ReminderRequest("Updated title", "description", LocalDateTime.now(), 1);
+                new ReminderRequest("Updated title", "description", LocalDateTime.now());
 
         Reminder saved = reminderRepository.save(reminderTransient);
 
         // when
-        ResultActions perform = mockMvc.perform(MockMvcRequestBuilders.patch("/api/v1/reminders/update/" + saved.getId())
+        ResultActions perform = mockMvc.perform(MockMvcRequestBuilders.patch("/api/v1/reminders/" + saved.getId())
+                .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(reminderRequest)));
 
@@ -113,7 +133,7 @@ class ReminderControllerIT extends BaseIT {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.description",
                         CoreMatchers.is(reminderRequest.description())))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.userId",
-                        CoreMatchers.is(reminderRequest.userId())));
+                        CoreMatchers.notNullValue()));
     }
 
 
@@ -125,7 +145,8 @@ class ReminderControllerIT extends BaseIT {
         ReminderRequest reminderRequest = DataUtils.getReminderRequest();
 
         // when
-        ResultActions perform = mockMvc.perform(MockMvcRequestBuilders.patch("/api/v1/reminders/update/" + id)
+        ResultActions perform = mockMvc.perform(MockMvcRequestBuilders.patch("/api/v1/reminders/" + id)
+                .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(reminderRequest)));
 
@@ -136,32 +157,6 @@ class ReminderControllerIT extends BaseIT {
                         CoreMatchers.is("Reminder with id " + id + " was not found")));
     }
 
-//    @Test
-//    @DisplayName("Test update not exists reminder functionality")
-//    void givenNotValidReminder_whenUpdateCalled_thenReturnExceptionResponse() throws Exception {
-//        // given
-//        Reminder reminderTransient = DataUtils.getReminderTransient();
-//        ReminderRequest reminderRequest =
-//                new ReminderRequest(DataUtils.generateString(300), DataUtils.generateString(5050), null, 1);
-
-//        Reminder saved = reminderRepository.save(reminderTransient);
-
-//        // when
-//        ResultActions perform = mockMvc.perform(MockMvcRequestBuilders.patch("/api/v1/reminders/update/" + saved.getId())
-//                .contentType(MediaType.APPLICATION_JSON)
-//                .content(objectMapper.writeValueAsString(reminderRequest)));
-
-//        // then
-//        perform.andDo(print())
-//                .andExpect(status().isOk())
-//                .andExpect(MockMvcResultMatchers.jsonPath("$.title",
-//                        CoreMatchers.is("The title size should not exceed 255 characters")))
-//                .andExpect(MockMvcResultMatchers.jsonPath("$.description",
-//                        CoreMatchers.is("The description size should not exceed 4096 characters")))
-//                .andExpect(MockMvcResultMatchers.jsonPath("$.remind",
-//                        CoreMatchers.is("Date and time cannot be null. ISO format expected")));
-//    }
-
     @Test
     @DisplayName("Test delete by id functionality")
     void givenId_whenDeleteByIdCalled_thenReminderSuccessDeleted() throws Exception {
@@ -170,7 +165,8 @@ class ReminderControllerIT extends BaseIT {
         Reminder saved = reminderRepository.save(reminderTransient);
         // when
         ResultActions perform = mockMvc.perform(MockMvcRequestBuilders
-                .delete("/api/v1/reminders/" + saved.getId()));
+                .delete("/api/v1/reminders/" + saved.getId())
+                .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser()));
 
         // then
         perform.andDo(print())
@@ -192,7 +188,9 @@ class ReminderControllerIT extends BaseIT {
         reminderRepository.saveAll(list);
 
         // when
-        ResultActions perform = mockMvc.perform(get("/api/v1/reminders/list"));
+        ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
+                .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
+        );
 
         // then
         perform.andDo(print())
@@ -219,7 +217,8 @@ class ReminderControllerIT extends BaseIT {
         reminderRepository.saveAll(allReminders);
 
         // when
-        ResultActions perform = mockMvc.perform(get("/api/v1/reminders/list")
+        ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
+                .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
                 .param("searchByText", searchKeyword));
 
         // then
@@ -236,7 +235,8 @@ class ReminderControllerIT extends BaseIT {
         String searchKeyword = "nonexistent";
 
         // when
-        ResultActions perform = mockMvc.perform(get("/api/v1/reminders/list")
+        ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
+                .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
                 .param("searchByText", searchKeyword));
 
         // then
@@ -262,7 +262,8 @@ class ReminderControllerIT extends BaseIT {
         reminderRepository.saveAll(allReminders);
 
         // when
-        ResultActions perform = mockMvc.perform(get("/api/v1/reminders/list")
+        ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
+                .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
                 .param("searchByDate", date.toString()));
 
         // then
@@ -287,7 +288,7 @@ class ReminderControllerIT extends BaseIT {
                 "Some title",
                 "Some description",
                 LocalDateTime.of(LocalDate.now(), time),
-                new User(1L, "email@mail.com", "telegram")));
+                DataUtils.mockUser()));
 
         long expectedSize = allReminders.stream()
                 .filter(reminder -> reminder.getRemind().toLocalDate().isEqual(LocalDate.now()))
@@ -297,7 +298,8 @@ class ReminderControllerIT extends BaseIT {
         reminderRepository.saveAll(allReminders);
 
         // when
-        ResultActions perform = mockMvc.perform(get("/api/v1/reminders/list")
+        ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
+                .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
                 .param("searchByTime", time.toString()));
 
         // then
@@ -325,7 +327,8 @@ class ReminderControllerIT extends BaseIT {
         reminderRepository.saveAll(allReminders);
 
         // when
-        ResultActions perform = mockMvc.perform(get("/api/v1/reminders/list")
+        ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
+                .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
                 .param("searchByDate", dateTime.toLocalDate().toString())
                 .param("searchByTime", dateTime.toLocalTime().toString()));
 
@@ -361,7 +364,8 @@ class ReminderControllerIT extends BaseIT {
         reminderRepository.saveAll(allReminders);
 
         // when
-        ResultActions perform = mockMvc.perform(get("/api/v1/reminders/list")
+        ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
+                .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
                 .param("searchByText", searchKeyword)
                 .param("searchByDate", first.getRemind().toLocalDate().toString())
                 .param("searchByTime", first.getRemind().toLocalTime().toString())
@@ -397,7 +401,8 @@ class ReminderControllerIT extends BaseIT {
         reminderRepository.saveAll(allReminders);
 
         // when
-        ResultActions perform = mockMvc.perform(get("/api/v1/reminders/list")
+        ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
+                .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
                 .param("sort", sortBy)
                 .param("asc", String.valueOf(ascending)));
 
@@ -436,7 +441,8 @@ class ReminderControllerIT extends BaseIT {
         reminderRepository.saveAll(allReminders);
 
         // when
-        ResultActions perform = mockMvc.perform(get("/api/v1/reminders/list")
+        ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
+                .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
                 .param("sort", sortBy)
                 .param("asc", String.valueOf(ascending)));
 
@@ -475,7 +481,8 @@ class ReminderControllerIT extends BaseIT {
         reminderRepository.saveAll(allReminders);
 
         // when
-        ResultActions perform = mockMvc.perform(get("/api/v1/reminders/list")
+        ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
+                .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
                 .param("sort", sortBy)
                 .param("asc", String.valueOf(ascending)));
 
@@ -503,7 +510,8 @@ class ReminderControllerIT extends BaseIT {
         String invalidParam = "invalid";
 
         // when
-        ResultActions perform = mockMvc.perform(get("/api/v1/reminders/list")
+        ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
+                .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
                 .param("sort", invalidParam));
 
         // when  then
@@ -529,7 +537,8 @@ class ReminderControllerIT extends BaseIT {
         reminderRepository.saveAll(allReminders);
 
         // when
-        ResultActions perform = mockMvc.perform(get("/api/v1/reminders/list")
+        ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
+                .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
                 .param("sort", sortBy)
                 .param("asc", String.valueOf(ascending)));
 
@@ -558,7 +567,8 @@ class ReminderControllerIT extends BaseIT {
         int invalidPageNumber = -5;
 
         // when
-        ResultActions perform = mockMvc.perform(get("/api/v1/reminders/list")
+        ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
+                .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
                 .param("page", String.valueOf(invalidPageNumber)));
 
         // then
@@ -588,7 +598,8 @@ class ReminderControllerIT extends BaseIT {
         reminderRepository.saveAll(allReminders);
 
         // when
-        ResultActions perform = mockMvc.perform(get("/api/v1/reminders/list")
+        ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
+                .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
                 .param("page", String.valueOf(page))
                 .param("size", String.valueOf(size)));
 
@@ -614,7 +625,8 @@ class ReminderControllerIT extends BaseIT {
         int invalidSize = -10;
 
         // when
-        ResultActions perform = mockMvc.perform(get("/api/v1/reminders/list")
+        ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
+                .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
                 .param("size", String.valueOf(invalidSize)));
 
         // then
@@ -631,7 +643,8 @@ class ReminderControllerIT extends BaseIT {
         String query = DataUtils.generateString(300);
 
         // when
-        ResultActions perform = mockMvc.perform(get("/api/v1/reminders/list")
+        ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
+                .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
                 .param("searchByText", query));
 
         // then
@@ -649,7 +662,8 @@ class ReminderControllerIT extends BaseIT {
 
         // when
 
-        ResultActions perform = mockMvc.perform(get("/api/v1/reminders/list")
+        ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
+                .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
                 .param("searchByDate", invalidDate));
 
         // then
@@ -666,7 +680,8 @@ class ReminderControllerIT extends BaseIT {
         String invalidTime = "21-12";
 
         // when
-        ResultActions perform = mockMvc.perform(get("/api/v1/reminders/list")
+        ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
+                .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
                 .param("searchByTime", invalidTime));
 
         // then
@@ -674,6 +689,85 @@ class ReminderControllerIT extends BaseIT {
                 .andExpect(status().isBadRequest())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.message",
                         CoreMatchers.startsWith("Method parameter")));
+    }
+
+    @Test
+    @DisplayName("Test update to other users reminders")
+    void givenTwoUsers_whenFirstTryToUpdateReminderOfFirstUser_thenThrowsException() throws Exception {
+        // given
+        Reminder reminderTransientFirstUser = DataUtils.getReminderTransient();
+        ReminderRequest reminderRequest = DataUtils.getReminderRequest();
+
+        Reminder saved = reminderRepository.save(reminderTransientFirstUser);
+
+        // when
+        ResultActions perform = mockMvc.perform(MockMvcRequestBuilders
+                .patch("/api/v1/reminders/" + saved.getId())
+                .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser(
+                        DataUtils.mockCustomUserPrincipal(1999L, "mailmail@mail.com", "tg")))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(reminderRequest)));
+
+        // then
+        perform.andDo(print())
+                .andExpect(status().isForbidden())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message",
+                        CoreMatchers.is("The current user has no access to this reminder")));
+    }
+
+    @Test
+    @DisplayName("Test update to other users reminders")
+    void givenTwoUsers_whenFirstTryToDeleteReminderOfFirstUser_thenThrowsException() throws Exception {
+        // given
+        Reminder reminderTransientFirstUser = DataUtils.getReminderTransient();
+        ReminderRequest reminderRequest = DataUtils.getReminderRequest();
+
+        Reminder saved = reminderRepository.save(reminderTransientFirstUser);
+
+        // when
+        ResultActions perform = mockMvc.perform(MockMvcRequestBuilders
+                .delete("/api/v1/reminders/" + saved.getId())
+                .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser(
+                        DataUtils.mockCustomUserPrincipal(1999L, "mailmail@mail.com", "tg")))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(reminderRequest)));
+
+        // then
+        perform.andDo(print())
+                .andExpect(status().isForbidden())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message",
+                        CoreMatchers.is("The current user has no access to this reminder")));
+    }
+
+    @Test
+    @DisplayName("Test find all with few users")
+    void givenFiveRemindersTwoForFirstUserThreeForSecond_whenFindAllWithDefaultParamsCalled_thenReturnCorrectReminders() throws Exception {
+        // given
+        User user = DataUtils.mockUser(null);
+        user.setEmail("email2@mail.com");
+        userRepository.save(user);
+        List<Reminder> list = DataUtils.getPageOfRemindersForTwoUsersPersisted()
+                .getContent()
+                .stream()
+                .peek(reminder -> reminder.setId(null))
+                .toList();
+        long userId = list.getFirst().getUser().getId();
+        int expectedSize = (int) list.stream()
+                .filter(reminder -> reminder.getUser().getId().equals(userId))
+                .count();
+
+        reminderRepository.saveAll(list);
+
+        // when
+        ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
+                .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
+        );
+
+        // then
+        perform.andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.content.length()",
+                        CoreMatchers.is(expectedSize)));
     }
 
     private String remindToDateTimeWithoutMs(LocalDateTime localDateTime) {

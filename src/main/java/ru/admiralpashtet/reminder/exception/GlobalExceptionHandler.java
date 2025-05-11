@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
-import ru.admiralpashtet.reminder.dto.ExceptionResponse;
+import ru.admiralpashtet.reminder.dto.response.ExceptionResponse;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -63,6 +63,14 @@ public class GlobalExceptionHandler {
                 new ExceptionResponse(exception.getMessage(), LocalDateTime.now(), getPath(request));
         log.error("An exception was caught: " + exception);
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler
+    private ResponseEntity<ExceptionResponse> handleAccessDeniedException(AccessDeniedException exception, WebRequest request) {
+        ExceptionResponse response =
+                new ExceptionResponse(exception.getMessage(), LocalDateTime.now(), getPath(request));
+        log.error("An exception was caught: " + exception);
+        return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
     }
 
     @ExceptionHandler

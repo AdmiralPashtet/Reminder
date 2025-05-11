@@ -6,7 +6,7 @@ spring:
     name: ReminderProject
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5433/db
+    url: jdbc:postgresql://localhost:5433/reminder-db
     username: postgres
     password: postgres
   jpa:
@@ -17,3 +17,48 @@ spring:
     hiddenmethod:
       filter:
         enabled: true
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_OAUTH_CLIENT_ID}
+            client-secret: ${GOOGLE_OAUTH_SECRET}
+            scope:
+              - profile
+              - email
+          github:
+            client-id: ${GITHUB_OAUTH_CLIENT_ID}
+            client-secret: ${GITHUB_OAUTH_SECRET}
+            scope:
+              - user:email
+              - read:user
+      resourceserver:
+        jwt:
+          issuer-uri: https://accounts.google.com
+  jackson:
+    time-zone: Europe/Moscow
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${GMAIL_USERNAME}
+    password: ${GMAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          starttls:
+            enable: true
+          auth: true
+          
+telegram:
+  bot:
+    token: ${TELEGRAM_BOT_TOKEN}
+
+logging:
+  level:
+    org:
+      springframework:
+        security: DEBUG
+
+urls:
+  github-fetch-email: https://api.github.com/user/emails

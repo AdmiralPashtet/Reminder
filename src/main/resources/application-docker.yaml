@@ -1,0 +1,3 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://reminder-postgres/reminder-db

@@ -15,6 +15,15 @@ public class ReminderSpecification {
     private ReminderSpecification() {
     }
 
+    public static Specification<Reminder> hasUserId(Long userId) {
+        if (userId == null || userId == 0) {
+            throw new IllegalArgumentException("User id must not be null and must be greater then zero");
+        }
+
+        return (root, query, criteriaBuilder) ->
+                criteriaBuilder.equal(root.get("user").get("id"), userId);
+    }
+
     public static Specification<Reminder> hasDateAndTime(LocalDate date, LocalTime time) {
         return (root, query, criteriaBuilder) -> {
             if (date != null && time != null) {
