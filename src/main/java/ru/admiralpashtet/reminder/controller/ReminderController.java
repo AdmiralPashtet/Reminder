@@ -1,25 +1,19 @@
 package ru.admiralpashtet.reminder.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import ru.admiralpashtet.reminder.dto.request.ReminderRequest;
+import ru.admiralpashtet.reminder.dto.request.SearchRequest;
 import ru.admiralpashtet.reminder.dto.response.ReminderResponse;
 import ru.admiralpashtet.reminder.entity.CustomUserPrincipal;
 import ru.admiralpashtet.reminder.service.ReminderService;
-
-import java.time.LocalDate;
-import java.time.LocalTime;
 
 @Tag(name = "Reminder controller", description = "Controller for working with reminders")
 @RestController
@@ -47,41 +41,9 @@ public class ReminderController {
 
     @GetMapping
     @Operation(summary = "Get all reminders by search filters")
-    public ResponseEntity<Page<ReminderResponse>> getAll(@Valid @RequestParam(name = "searchByText", required = false)
-                                                         @Size(max = 255,
-                                                                 message = "Search query must be less then 255 characters")
-                                                         @Parameter(description = "Search query. " +
-                                                                 "Several words must be connected by a plus. " +
-                                                                 "The search in performed on all words in sentence.",
-                                                                 example = "searchByText=sanya+birthday")
-                                                         String searchByText,
-                                                         @RequestParam(name = "searchByDate", required = false)
-                                                         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-                                                         @Parameter(description = "ISO format is used.",
-                                                                 example = "searchByDate=2025-05-06")
-                                                         LocalDate date,
-                                                         @RequestParam(name = "searchByTime", required = false)
-                                                         @DateTimeFormat(iso = DateTimeFormat.ISO.TIME)
-                                                         @Parameter(description = "ISO format is used.",
-                                                                 example = "searchByTime=15:50")
-                                                         LocalTime time,
-                                                         @RequestParam(name = "sort", defaultValue = "remind")
-                                                         @Parameter(description = "Sort condition parameter.",
-                                                                 schema = @Schema(allowableValues =
-                                                                         {"title", "description", "remind"}))
-                                                         String sortBy,
-                                                         @RequestParam(name = "asc", defaultValue = "true")
-                                                         @Parameter(description = "Sorting direction")
-                                                         boolean ascending,
-                                                         @RequestParam(name = "page", defaultValue = "0")
-                                                         @Parameter(description = "Current page number")
-                                                         int page,
-                                                         @RequestParam(name = "size", defaultValue = "10")
-                                                         @Parameter(description = "Number of elements on one page")
-                                                         int size,
+    public ResponseEntity<Page<ReminderResponse>> getAll(@RequestBody @Valid SearchRequest searchRequest,
                                                          @AuthenticationPrincipal CustomUserPrincipal principal) {
-        Page<ReminderResponse> reminderPage = reminderService.findAll(principal.getId(),
-                searchByText, date, time, sortBy, ascending, page, size);
+        Page<ReminderResponse> reminderPage = reminderService.findAll(principal.getId(), searchRequest);
         return new ResponseEntity<>(reminderPage, HttpStatus.OK);
     }
 
