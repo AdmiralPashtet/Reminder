@@ -20,6 +20,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import ru.admiralpashtet.reminder.config.TestConfig;
 import ru.admiralpashtet.reminder.dto.request.ReminderRequest;
+import ru.admiralpashtet.reminder.dto.request.SearchRequest;
 import ru.admiralpashtet.reminder.dto.response.ReminderResponse;
 import ru.admiralpashtet.reminder.entity.CustomUserPrincipal;
 import ru.admiralpashtet.reminder.entity.Reminder;
@@ -166,22 +167,24 @@ class ReminderControllerTest {
         // given
         Page<Reminder> entityPage = DataUtils.getPageOfRemindersPersisted();
         Page<ReminderResponse> responsePage = DataUtils.getPageOfReminderResponsesForOneUser();
+        SearchRequest searchRequest = new SearchRequest(
+                null,
+                null,
+                null,
+                null,
+                true,
+                0,
+                10
+        );
 
-
-        BDDMockito.when(reminderService.findAll(
-                        isNotNull(),
-                        isNull(),
-                        isNull(),
-                        isNull(),
-                        eq("remind"),
-                        eq(true),
-                        eq(0),
-                        eq(10)))
+        BDDMockito.when(reminderService.findAll(isNotNull(), any(SearchRequest.class)))
                 .thenReturn(responsePage);
 
         // when
         ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
-                .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser()));
+                .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(searchRequest)));
 
         // then
         perform.andDo(print())
@@ -204,21 +207,24 @@ class ReminderControllerTest {
         Page<ReminderResponse> filteredPage = new PageImpl<>(filteredReminders,
                 PageRequest.of(0, 10), allReminders.size());
 
-        BDDMockito.when(reminderService.findAll(
-                        isNotNull(),
-                        eq(searchKeyword),
-                        isNull(),
-                        isNull(),
-                        eq("remind"),
-                        eq(true),
-                        eq(0),
-                        eq(10)))
+        SearchRequest searchRequest = new SearchRequest(
+                searchKeyword,
+                null,
+                null,
+                null,
+                true,
+                0,
+                10
+        );
+
+        BDDMockito.when(reminderService.findAll(isNotNull(), any(SearchRequest.class)))
                 .thenReturn(filteredPage);
 
         // when
         ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
                 .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
-                .param("searchByText", searchKeyword));
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(searchRequest)));
 
         // then
         perform.andDo(print())
@@ -234,21 +240,24 @@ class ReminderControllerTest {
         Page<ReminderResponse> page = new PageImpl<>(Collections.emptyList(),
                 PageRequest.of(0, 10), 5);
 
-        BDDMockito.when(reminderService.findAll(
-                        isNotNull(),
-                        eq(searchKeyword),
-                        isNull(),
-                        isNull(),
-                        eq("remind"),
-                        eq(true),
-                        eq(0),
-                        eq(10)))
+        SearchRequest searchRequest = new SearchRequest(
+                searchKeyword,
+                null,
+                null,
+                null,
+                true,
+                0,
+                10
+        );
+
+        BDDMockito.when(reminderService.findAll(isNotNull(), any(SearchRequest.class)))
                 .thenReturn(page);
 
         // when
         ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
                 .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
-                .param("searchByText", searchKeyword));
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(searchRequest)));
 
         // then
         perform.andDo(print())
@@ -269,21 +278,24 @@ class ReminderControllerTest {
         Page<ReminderResponse> filteredPage =
                 new PageImpl<>(filtered, PageRequest.of(0, 10), allReminders.size());
 
-        BDDMockito.when(reminderService.findAll(
-                        isNotNull(),
-                        isNull(),
-                        eq(date),
-                        isNull(),
-                        eq("remind"),
-                        eq(true),
-                        eq(0),
-                        eq(10)))
+        SearchRequest searchRequest = new SearchRequest(
+                null,
+                date,
+                null,
+                null,
+                true,
+                0,
+                10
+        );
+
+        BDDMockito.when(reminderService.findAll(isNotNull(), any(SearchRequest.class)))
                 .thenReturn(filteredPage);
 
         // when
         ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
                 .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
-                .param("searchByDate", date.toString()));
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(searchRequest)));
 
         // then
         perform.andDo(print())
@@ -305,21 +317,24 @@ class ReminderControllerTest {
         Page<ReminderResponse> filteredPage = new PageImpl<>(filtered, PageRequest.of(0, 10),
                 allReminders.size());
 
-        BDDMockito.when(reminderService.findAll(
-                        isNotNull(),
-                        isNull(),
-                        isNull(),
-                        eq(time),
-                        eq("remind"),
-                        eq(true),
-                        eq(0),
-                        eq(10)))
+        SearchRequest searchRequest = new SearchRequest(
+                null,
+                null,
+                time,
+                null,
+                true,
+                0,
+                10
+        );
+
+        BDDMockito.when(reminderService.findAll(isNotNull(), any(SearchRequest.class)))
                 .thenReturn(filteredPage);
 
         // when
         ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
                 .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
-                .param("searchByTime", time.toString()));
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(searchRequest)));
 
         // then
         perform.andDo(print())
@@ -340,22 +355,24 @@ class ReminderControllerTest {
                 .toList();
         Page<ReminderResponse> filteredPage = new PageImpl<>(filtered, PageRequest.of(0, 10), allReminders.size());
 
-        BDDMockito.when(reminderService.findAll(
-                        isNotNull(),
-                        isNull(),
-                        eq(dateTime.toLocalDate()),
-                        eq(dateTime.toLocalTime()),
-                        eq("remind"),
-                        eq(true),
-                        eq(0),
-                        eq(10)))
+        SearchRequest searchRequest = new SearchRequest(
+                null,
+                dateTime.toLocalDate(),
+                dateTime.toLocalTime(),
+                null,
+                true,
+                0,
+                10
+        );
+
+        BDDMockito.when(reminderService.findAll(isNotNull(), any(SearchRequest.class)))
                 .thenReturn(filteredPage);
 
         // when
         ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
                 .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
-                .param("searchByDate", dateTime.toLocalDate().toString())
-                .param("searchByTime", dateTime.toLocalTime().toString()));
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(searchRequest)));
 
         // then
         perform.andDo(print())
@@ -386,27 +403,24 @@ class ReminderControllerTest {
                 PageRequest.of(0, allReminders.size(), Sort.by(Sort.Direction.ASC, sortBy)),
                 sorted.size());
 
-        BDDMockito.when(reminderService.findAll(
-                        isNotNull(),
-                        eq(searchKeyword),
-                        eq(first.getRemind().toLocalDate()),
-                        eq(first.getRemind().toLocalTime()),
-                        eq(sortBy),
-                        eq(ascending),
-                        eq(page),
-                        eq(size)))
+        SearchRequest searchRequest = new SearchRequest(
+                searchKeyword,
+                first.getRemind().toLocalDate(),
+                first.getRemind().toLocalTime(),
+                sortBy,
+                ascending,
+                page,
+                size
+        );
+
+        BDDMockito.when(reminderService.findAll(isNotNull(), any(SearchRequest.class)))
                 .thenReturn(sortedPage);
 
         // when
         ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
                 .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
-                .param("searchByText", searchKeyword)
-                .param("searchByDate", first.getRemind().toLocalDate().toString())
-                .param("searchByTime", first.getRemind().toLocalTime().toString())
-                .param("sort", sortBy)
-                .param("asc", String.valueOf(ascending))
-                .param("page", String.valueOf(page))
-                .param("size", String.valueOf(size)));
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(searchRequest)));
 
         // then
         perform.andDo(print())
@@ -430,22 +444,24 @@ class ReminderControllerTest {
                 PageRequest.of(0, allReminders.size(), Sort.by(Sort.Direction.ASC, sortBy)),
                 sorted.size());
 
-        BDDMockito.when(reminderService.findAll(
-                        isNotNull(),
-                        isNull(),
-                        isNull(),
-                        isNull(),
-                        eq(sortBy),
-                        eq(ascending),
-                        eq(0),
-                        eq(10)))
+        SearchRequest searchRequest = new SearchRequest(
+                null,
+                null,
+                null,
+                sortBy,
+                ascending,
+                0,
+                10
+        );
+
+        BDDMockito.when(reminderService.findAll(isNotNull(), any(SearchRequest.class)))
                 .thenReturn(sortedPage);
 
         // when
         ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
                 .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
-                .param("sort", sortBy)
-                .param("asc", String.valueOf(ascending)));
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(searchRequest)));
 
         // then
         perform.andDo(print())
@@ -469,21 +485,23 @@ class ReminderControllerTest {
                 PageRequest.of(0, allReminders.size(), Sort.by(Sort.Direction.ASC, sortBy)),
                 allReminders.size());
 
-        BDDMockito.when(reminderService.findAll(
-                        isNotNull(),
-                        isNull(),
-                        isNull(),
-                        isNull(),
-                        eq(sortBy),
-                        eq(ascending),
-                        eq(0),
-                        eq(10)))
+        SearchRequest searchRequest = new SearchRequest(
+                null,
+                null,
+                null,
+                sortBy,
+                ascending,
+                0,
+                10
+        );
+
+        BDDMockito.when(reminderService.findAll(isNotNull(), any(SearchRequest.class)))
                 .thenReturn(sortedPage);
         // when
         ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
                 .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
-                .param("sort", sortBy)
-                .param("asc", String.valueOf(ascending)));
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(searchRequest)));
 
         // then
         perform.andDo(print())
@@ -507,21 +525,23 @@ class ReminderControllerTest {
                 PageRequest.of(0, allReminders.size(), Sort.by(Sort.Direction.ASC, sortBy)),
                 sorted.size());
 
-        BDDMockito.when(reminderService.findAll(
-                        isNotNull(),
-                        isNull(),
-                        isNull(),
-                        isNull(),
-                        eq(sortBy),
-                        eq(ascending),
-                        eq(0),
-                        eq(10)))
+        SearchRequest searchRequest = new SearchRequest(
+                null,
+                null,
+                null,
+                sortBy,
+                ascending,
+                0,
+                10
+        );
+
+        BDDMockito.when(reminderService.findAll(isNotNull(), any(SearchRequest.class)))
                 .thenReturn(sortedPage);
         // when
         ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
                 .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
-                .param("sort", sortBy)
-                .param("asc", String.valueOf(ascending)));
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(searchRequest)));
 
         // then
         perform.andDo(print())
@@ -534,14 +554,17 @@ class ReminderControllerTest {
     @DisplayName("Test find all reminders with invalid sort parameter")
     void givenInvalidSortParam_whenFindAllCalledWithSortByInvalidParam_thenThrowsException() throws Exception {
         // given
-        String invalidParam = "invalid";
+        String invalidSortByParam = "invalid";
+        SearchRequest searchRequest =
+                new SearchRequest(null, null, null, invalidSortByParam, true, 0, 10);
         BDDMockito
-                .given(reminderService.findAll(1L, null, null, null, invalidParam, true, 0, 10))
+                .given(reminderService.findAll(1L, searchRequest))
                 .willThrow(new IllegalArgumentException("Illegal argument in \"sortBy\" URI parameter. Expected: {title, description, remind}"));
         // when
         ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
                 .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
-                .param("sort", invalidParam));
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(searchRequest)));
 
         // when  then
         perform.andDo(print())
@@ -564,22 +587,24 @@ class ReminderControllerTest {
                         PageRequest.of(0, allReminders.size(), Sort.by(Sort.Direction.DESC, sortBy)),
                         sortedReminderResponse.size());
 
-        BDDMockito.when(reminderService.findAll(
-                        isNotNull(),
-                        isNull(),
-                        isNull(),
-                        isNull(),
-                        eq(sortBy),
-                        eq(ascending),
-                        eq(0),
-                        eq(10)))
+        SearchRequest searchRequest = new SearchRequest(
+                null,
+                null,
+                null,
+                sortBy,
+                ascending,
+                0,
+                10
+        );
+
+        BDDMockito.when(reminderService.findAll(isNotNull(), any(SearchRequest.class)))
                 .thenReturn(sortedPage);
 
         // when
         ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
                 .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
-                .param("sort", sortBy)
-                .param("asc", String.valueOf(ascending)));
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(searchRequest)));
 
         // then
         perform.andDo(print())
@@ -594,14 +619,16 @@ class ReminderControllerTest {
     void givenInvalidPageNumber_whenFindAllCalledWithMinusPage_thenThrowsException() throws Exception {
         // given
         int invalidPageNumber = -5;
+        SearchRequest searchRequest =
+                new SearchRequest(null, null, null, "remind", true, invalidPageNumber, 10);
         BDDMockito
-                .given(reminderService.findAll(
-                        1L, null, null, null, "remind", true, invalidPageNumber, 10))
+                .given(reminderService.findAll(1L, searchRequest))
                 .willThrow(new IllegalArgumentException("Page index must not be less than zero"));
         // when
         ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
                 .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
-                .param("page", String.valueOf(invalidPageNumber)));
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(searchRequest)));
 
         // then
         perform.andDo(print())
@@ -627,22 +654,24 @@ class ReminderControllerTest {
                 PageRequest.of(page, size),
                 allReminders.size());
 
-        BDDMockito.when(reminderService.findAll(
-                        isNotNull(),
-                        isNull(),
-                        isNull(),
-                        isNull(),
-                        eq("remind"),
-                        eq(true),
-                        eq(page),
-                        eq(size)))
+        SearchRequest searchRequest = new SearchRequest(
+                null,
+                null,
+                null,
+                null,
+                true,
+                0,
+                10
+        );
+
+        BDDMockito.when(reminderService.findAll(isNotNull(), any(SearchRequest.class)))
                 .thenReturn(reminderPage);
 
         // when
         ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
                 .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
-                .param("page", String.valueOf(page))
-                .param("size", String.valueOf(size)));
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(searchRequest)));
 
         // then
         perform.andDo(print())
@@ -656,14 +685,16 @@ class ReminderControllerTest {
     void givenInvalidSize_whenFindAllCalledWithMinusSize_thenThrowsException() throws Exception {
         // given
         int invalidSize = -10;
-
+        SearchRequest searchRequest =
+                new SearchRequest(null, null, null, "remind", true, 0, invalidSize);
         BDDMockito
-                .given(reminderService.findAll(1L, null, null, null, "remind", true, 0, invalidSize))
+                .given(reminderService.findAll(1L, searchRequest))
                 .willThrow(new IllegalArgumentException("Page size must not be less than one"));
         // when
         ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
                 .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
-                .param("size", String.valueOf(invalidSize)));
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(searchRequest)));
 
         // then
         perform.andDo(print())
@@ -713,20 +744,23 @@ class ReminderControllerTest {
                         PageRequest.of(0, allReminders.size(), Sort.by(Sort.Direction.DESC, sortBy)),
                         filtered.size());
 
-        BDDMockito.when(reminderService.findAll(
-                        isNotNull(),
-                        isNull(),
-                        isNull(),
-                        isNull(),
-                        eq(sortBy),
-                        eq(true),
-                        eq(0),
-                        eq(10)))
+        SearchRequest searchRequest = new SearchRequest(
+                null,
+                null,
+                null,
+                sortBy,
+                true,
+                0,
+                10
+        );
+
+        BDDMockito.when(reminderService.findAll(isNotNull(), any(SearchRequest.class)))
                 .thenReturn(filteredPage);
 
         // when
         ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
-                .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser()));
+                .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser()).contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(searchRequest)));
 
         // then
         perform.andDo(print())

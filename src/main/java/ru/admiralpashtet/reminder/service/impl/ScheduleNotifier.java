@@ -18,7 +18,7 @@ public class ScheduleNotifier implements ScheduleService {
     private TelegramNotificationSenderService telegramNotificationSenderService;
 
     @Override
-    @Scheduled(cron = "0 * * * * *")
+    @Scheduled(cron = "${schedule.notifier.cron}")
     public void doNotify() {
         List<Reminder> reminders = reminderService.findAllByLocalDateTimeNow();
         if (!reminders.isEmpty()) {

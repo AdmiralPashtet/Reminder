@@ -2,18 +2,16 @@ package ru.admiralpashtet.reminder.service;
 
 import org.springframework.data.domain.Page;
 import ru.admiralpashtet.reminder.dto.request.ReminderRequest;
+import ru.admiralpashtet.reminder.dto.request.SearchRequest;
 import ru.admiralpashtet.reminder.dto.response.ReminderResponse;
 import ru.admiralpashtet.reminder.entity.Reminder;
 
-import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.List;
 
 public interface ReminderService {
     ReminderResponse create(ReminderRequest reminderRequest, Long userId);
 
-    Page<ReminderResponse> findAll(Long userId, String searchQuery, LocalDate date, LocalTime time, String sortBy,
-                                   boolean ascending, int page, int size);
+    Page<ReminderResponse> findAll(Long userId, SearchRequest searchRequest);
 
     ReminderResponse update(ReminderRequest reminderRequest, Long reminderId, Long userId);
 

@@ -15,6 +15,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.telegram.telegrambots.longpolling.starter.TelegramBotInitializer;
 import ru.admiralpashtet.reminder.dto.request.ReminderRequest;
+import ru.admiralpashtet.reminder.dto.request.SearchRequest;
 import ru.admiralpashtet.reminder.dto.response.ReminderResponse;
 import ru.admiralpashtet.reminder.entity.Reminder;
 import ru.admiralpashtet.reminder.entity.User;
@@ -100,8 +101,6 @@ class ReminderControllerIT extends BaseIT {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.description",
                         CoreMatchers.is(reminderRequest.description())))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.remind",
-//                        CoreMatchers.startsWith(reminderRequest.remind().toString().substring(0, 17))))
-//                .andExpect(MockMvcResultMatchers.jsonPath("$.remind",
                         CoreMatchers.startsWith(remindToDateTimeWithoutMs(reminderRequest.remind()))))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.userId",
                         CoreMatchers.notNullValue()));
@@ -187,10 +186,14 @@ class ReminderControllerIT extends BaseIT {
 
         reminderRepository.saveAll(list);
 
+        SearchRequest searchRequest =
+                new SearchRequest(null, null, null, "remind", true, 0, 10);
+
         // when
         ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
                 .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
-        );
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(searchRequest)));
 
         // then
         perform.andDo(print())
@@ -216,10 +219,21 @@ class ReminderControllerIT extends BaseIT {
 
         reminderRepository.saveAll(allReminders);
 
+        SearchRequest searchRequest = new SearchRequest(
+                searchKeyword,
+                null,
+                null,
+                "remind",
+                true,
+                0,
+                10
+        );
+
         // when
         ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
                 .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
-                .param("searchByText", searchKeyword));
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(searchRequest)));
 
         // then
         perform.andDo(print())
@@ -233,11 +247,21 @@ class ReminderControllerIT extends BaseIT {
     void givenNotExistsSearchQuery_whenGetAllCalledWithNotExistsSearchQuery_thenReturnBlankPage() throws Exception {
         // given
         String searchKeyword = "nonexistent";
+        SearchRequest searchRequest = new SearchRequest(
+                searchKeyword,
+                null,
+                null,
+                "remind",
+                true,
+                0,
+                10
+        );
 
         // when
         ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
                 .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
-                .param("searchByText", searchKeyword));
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(searchRequest)));
 
         // then
         perform.andDo(print())
@@ -261,10 +285,21 @@ class ReminderControllerIT extends BaseIT {
 
         reminderRepository.saveAll(allReminders);
 
+        SearchRequest searchRequest = new SearchRequest(
+                null,
+                date,
+                null,
+                "remind",
+                true,
+                0,
+                10
+        );
+
         // when
         ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
                 .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
-                .param("searchByDate", date.toString()));
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(searchRequest)));
 
         // then
         perform.andDo(print())
@@ -297,10 +332,21 @@ class ReminderControllerIT extends BaseIT {
 
         reminderRepository.saveAll(allReminders);
 
+        SearchRequest searchRequest = new SearchRequest(
+                null,
+                null,
+                time,
+                "remind",
+                true,
+                0,
+                10
+        );
+
         // when
         ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
                 .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
-                .param("searchByTime", time.toString()));
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(searchRequest)));
 
         // then
         perform.andDo(print())
@@ -326,11 +372,21 @@ class ReminderControllerIT extends BaseIT {
 
         reminderRepository.saveAll(allReminders);
 
+        SearchRequest searchRequest = new SearchRequest(
+                null,
+                dateTime.toLocalDate(),
+                dateTime.toLocalTime(),
+                "remind",
+                true,
+                0,
+                10
+        );
+
         // when
         ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
                 .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
-                .param("searchByDate", dateTime.toLocalDate().toString())
-                .param("searchByTime", dateTime.toLocalTime().toString()));
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(searchRequest)));
 
         // then
         perform.andDo(print())
@@ -363,16 +419,21 @@ class ReminderControllerIT extends BaseIT {
 
         reminderRepository.saveAll(allReminders);
 
+        SearchRequest searchRequest = new SearchRequest(
+                searchKeyword,
+                first.getRemind().toLocalDate(),
+                first.getRemind().toLocalTime(),
+                sortBy,
+                ascending,
+                page,
+                size
+        );
+
         // when
         ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
                 .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
-                .param("searchByText", searchKeyword)
-                .param("searchByDate", first.getRemind().toLocalDate().toString())
-                .param("searchByTime", first.getRemind().toLocalTime().toString())
-                .param("sort", sortBy)
-                .param("asc", String.valueOf(ascending))
-                .param("page", String.valueOf(page))
-                .param("size", String.valueOf(size)));
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(searchRequest)));
 
         // then
         perform.andDo(print())
@@ -400,11 +461,21 @@ class ReminderControllerIT extends BaseIT {
 
         reminderRepository.saveAll(allReminders);
 
+        SearchRequest searchRequest = new SearchRequest(
+                null,
+                null,
+                null,
+                sortBy,
+                ascending,
+                0,
+                10
+        );
+
         // when
         ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
                 .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
-                .param("sort", sortBy)
-                .param("asc", String.valueOf(ascending)));
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(searchRequest)));
 
         // then
         perform.andDo(print())
@@ -440,11 +511,21 @@ class ReminderControllerIT extends BaseIT {
 
         reminderRepository.saveAll(allReminders);
 
+        SearchRequest searchRequest = new SearchRequest(
+                null,
+                null,
+                null,
+                sortBy,
+                ascending,
+                0,
+                10
+        );
+
         // when
         ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
                 .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
-                .param("sort", sortBy)
-                .param("asc", String.valueOf(ascending)));
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(searchRequest)));
 
         // then
         perform.andDo(print())
@@ -480,11 +561,21 @@ class ReminderControllerIT extends BaseIT {
 
         reminderRepository.saveAll(allReminders);
 
+        SearchRequest searchRequest = new SearchRequest(
+                null,
+                null,
+                null,
+                sortBy,
+                ascending,
+                0,
+                10
+        );
+
         // when
         ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
                 .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
-                .param("sort", sortBy)
-                .param("asc", String.valueOf(ascending)));
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(searchRequest)));
 
         // then
         perform.andDo(print())
@@ -507,18 +598,21 @@ class ReminderControllerIT extends BaseIT {
     @DisplayName("Test find all reminders with invalid sort parameter")
     void givenInvalidSortParam_whenGetAllCalledWithSortByInvalidParam_thenReturnExceptionResponse() throws Exception {
         // given
-        String invalidParam = "invalid";
+        String invalidSortByParam = "invalid";
+        SearchRequest searchRequest =
+                new SearchRequest(null, null, null, invalidSortByParam, true, 0, 10);
 
         // when
         ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
                 .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
-                .param("sort", invalidParam));
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(searchRequest)));
 
         // when  then
         perform.andDo(print())
                 .andExpect(status().isBadRequest())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.message",
-                        CoreMatchers.is("Illegal argument in \"sortBy\" URI parameter. Expected: {title, description, remind}")));
+                        CoreMatchers.startsWith("Illegal argument")));
     }
 
     @Test
@@ -536,11 +630,21 @@ class ReminderControllerIT extends BaseIT {
 
         reminderRepository.saveAll(allReminders);
 
+        SearchRequest searchRequest = new SearchRequest(
+                null,
+                null,
+                null,
+                sortBy,
+                ascending,
+                0,
+                10
+        );
+
         // when
         ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
                 .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
-                .param("sort", sortBy)
-                .param("asc", String.valueOf(ascending)));
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(searchRequest)));
 
         // then
         perform.andDo(print())
@@ -565,11 +669,13 @@ class ReminderControllerIT extends BaseIT {
     void givenInvalidPageNumber_whenGetAllCalledWithMinusPage_thenReturnExceptionResponse() throws Exception {
         // given
         int invalidPageNumber = -5;
-
+        SearchRequest searchRequest =
+                new SearchRequest(null, null, null, "remind", true, invalidPageNumber, 10);
         // when
         ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
                 .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
-                .param("page", String.valueOf(invalidPageNumber)));
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(searchRequest)));
 
         // then
         perform.andDo(print())
@@ -597,11 +703,21 @@ class ReminderControllerIT extends BaseIT {
 
         reminderRepository.saveAll(allReminders);
 
+        SearchRequest searchRequest = new SearchRequest(
+                null,
+                null,
+                null,
+                "remind",
+                true,
+                page,
+                size
+        );
+
         // when
         ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
                 .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
-                .param("page", String.valueOf(page))
-                .param("size", String.valueOf(size)));
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(searchRequest)));
 
         // then
         perform.andDo(print())
@@ -623,11 +739,13 @@ class ReminderControllerIT extends BaseIT {
     void givenInvalidSize_whenGetAllCalledWithMinusSize_thenReturnExceptionResponse() throws Exception {
         // given
         int invalidSize = -10;
-
+        SearchRequest searchRequest =
+                new SearchRequest(null, null, null, "remind", true, 0, invalidSize);
         // when
         ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
                 .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
-                .param("size", String.valueOf(invalidSize)));
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(searchRequest)));
 
         // then
         perform.andDo(print())
@@ -641,54 +759,20 @@ class ReminderControllerIT extends BaseIT {
     void givenSearchQueryLongerThen255Characters_whenGetAllCalled_thenReturnExceptionResponse() throws Exception {
         // given
         String query = DataUtils.generateString(300);
+        SearchRequest searchRequest =
+                new SearchRequest(query, null, null, "remind", true, 0, 10);
 
         // when
         ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
                 .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
-                .param("searchByText", query));
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(searchRequest)));
 
         // then
         perform.andDo(print())
                 .andExpect(status().isBadRequest())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.searchByText",
+                .andExpect(MockMvcResultMatchers.jsonPath("$.searchQuery",
                         CoreMatchers.is("Search query must be less then 255 characters")));
-    }
-
-    @Test
-    @DisplayName("Test find all with invalid date format functionality")
-    void givenInvalidDateFormat_whenGetAllCalled_thenReturnExceptionResponse() throws Exception {
-        // given
-        String invalidDate = "15/12/2021";
-
-        // when
-
-        ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
-                .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
-                .param("searchByDate", invalidDate));
-
-        // then
-        perform.andDo(print())
-                .andExpect(status().isBadRequest())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.message",
-                        CoreMatchers.startsWith("Method parameter")));
-    }
-
-    @Test
-    @DisplayName("Test find all with invalid time functionality")
-    void givenInvalidTimeFormat_whenGetAllCalled_thenReturnExceptionResponse() throws Exception {
-        // given
-        String invalidTime = "21-12";
-
-        // when
-        ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
-                .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
-                .param("searchByTime", invalidTime));
-
-        // then
-        perform.andDo(print())
-                .andExpect(status().isBadRequest())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.message",
-                        CoreMatchers.startsWith("Method parameter")));
     }
 
     @Test
@@ -758,10 +842,21 @@ class ReminderControllerIT extends BaseIT {
 
         reminderRepository.saveAll(list);
 
+        SearchRequest searchRequest = new SearchRequest(
+                null,
+                null,
+                null,
+                "remind",
+                true,
+                0,
+                10
+        );
+
         // when
         ResultActions perform = mockMvc.perform(get("/api/v1/reminders")
                 .with(DataUtils.securityMockMvcRequestPostProcessorsWithMockUser())
-        );
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(searchRequest)));
 
         // then
         perform.andDo(print())

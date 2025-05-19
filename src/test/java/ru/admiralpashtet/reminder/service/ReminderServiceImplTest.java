@@ -13,6 +13,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import ru.admiralpashtet.reminder.dto.request.ReminderRequest;
+import ru.admiralpashtet.reminder.dto.request.SearchRequest;
 import ru.admiralpashtet.reminder.dto.response.ReminderResponse;
 import ru.admiralpashtet.reminder.entity.Reminder;
 import ru.admiralpashtet.reminder.exception.ReminderNotFoundException;
@@ -147,7 +148,8 @@ class ReminderServiceImplTest {
                 });
 
         // when
-        Page<ReminderResponse> resultPage = reminderService.findAll(1L, null, null, null, "title", true, 0, 10);
+        Page<ReminderResponse> resultPage = reminderService.findAll(1L,
+                new SearchRequest(null, null, null, "title", true, 0, 10));
 
         // then
         assertThat(resultPage).isNotNull();
@@ -184,7 +186,8 @@ class ReminderServiceImplTest {
                 });
 
         // when
-        Page<ReminderResponse> result = reminderService.findAll(1L, "meeting", null, null, "remind", true, 0, 10);
+        Page<ReminderResponse> result = reminderService.findAll(1L,
+                new SearchRequest("meeting", null, null, "remind", true, 0, 10));
 
         // then
         assertThat(result).isNotNull();
@@ -203,7 +206,8 @@ class ReminderServiceImplTest {
                 .thenReturn(Page.empty());
 
         // when
-        Page<ReminderResponse> result = reminderService.findAll(1L, "nonexistent", null, null, "remind", true, 0, 10);
+        Page<ReminderResponse> result = reminderService.findAll(1L,
+                new SearchRequest("nonexistent", null, null, "remind", true, 0, 10));
 
         // then
         assertThat(result).isNotNull();
@@ -236,7 +240,8 @@ class ReminderServiceImplTest {
 
 
         // when
-        Page<ReminderResponse> result = reminderService.findAll(1L, null, date, null, "remind", true, 0, 10);
+        Page<ReminderResponse> result = reminderService.findAll(1L,
+                new SearchRequest(null, date, null, "remind", true, 0, 10));
 
         // then
         assertThat(result).isNotNull();
@@ -270,7 +275,8 @@ class ReminderServiceImplTest {
                 });
 
         // when
-        Page<ReminderResponse> result = reminderService.findAll(1L, null, null, time, "remind", true, 0, 10);
+        Page<ReminderResponse> result = reminderService.findAll(1L,
+                new SearchRequest(null, null, time, "remind", true, 0, 10));
 
         // then
         assertThat(result).isNotNull();
@@ -304,7 +310,14 @@ class ReminderServiceImplTest {
 
         // when
         Page<ReminderResponse> result = reminderService
-                .findAll(1L, null, dateTime.toLocalDate(), dateTime.toLocalTime(), "remind", true, 0, 10);
+                .findAll(1L,
+                        new SearchRequest(null,
+                                dateTime.toLocalDate(),
+                                dateTime.toLocalTime(),
+                                "remind",
+                                true,
+                                0,
+                                10));
 
         // then
         assertThat(result).isNotNull();
@@ -326,7 +339,8 @@ class ReminderServiceImplTest {
                         && r.getRemind().toLocalDate().equals(dateTime.toLocalDate())
                         && r.getRemind().toLocalTime().equals(dateTime.toLocalTime()))
                 .toList();
-        Page<Reminder> filteredPage = new PageImpl<>(filteredReminders, PageRequest.of(0, 10), filteredReminders.size());
+        Page<Reminder> filteredPage = new PageImpl<>(filteredReminders, PageRequest.of(0, 10),
+                filteredReminders.size());
 
         BDDMockito.when(reminderRepository.findAll(any(Specification.class), any(PageRequest.class)))
                 .thenReturn(filteredPage);
@@ -342,7 +356,14 @@ class ReminderServiceImplTest {
 
         // when
         Page<ReminderResponse> result = reminderService
-                .findAll(1L, searchQuery, dateTime.toLocalDate(), dateTime.toLocalTime(), "remind", true, 0, 10);
+                .findAll(1L,
+                        new SearchRequest(searchQuery,
+                                dateTime.toLocalDate(),
+                                dateTime.toLocalTime(),
+                                "remind",
+                                true,
+                                0,
+                                10));
 
         // then
         assertThat(result).isNotNull();
@@ -378,7 +399,8 @@ class ReminderServiceImplTest {
                             .orElseThrow();
                 });
         // when
-        Page<ReminderResponse> result = reminderService.findAll(1L, null, null, null, sortBy, ascending, 0, allReminders.size());
+        Page<ReminderResponse> result = reminderService.findAll(1L,
+                new SearchRequest(null, null, null, sortBy, ascending, 0, allReminders.size()));
 
         // then
         assertThat(result).isNotNull();
@@ -412,7 +434,8 @@ class ReminderServiceImplTest {
                             .orElseThrow();
                 });
         // when
-        Page<ReminderResponse> result = reminderService.findAll(1L, null, null, null, sortBy, ascending, 0, allReminders.size());
+        Page<ReminderResponse> result = reminderService.findAll(1L,
+                new SearchRequest(null, null, null, sortBy, ascending, 0, allReminders.size()));
 
         // then
         assertThat(result).isNotNull();
@@ -446,7 +469,8 @@ class ReminderServiceImplTest {
                             .orElseThrow();
                 });
         // when
-        Page<ReminderResponse> result = reminderService.findAll(1L, null, null, null, sortBy, ascending, 0, allReminders.size());
+        Page<ReminderResponse> result = reminderService.findAll(1L,
+                new SearchRequest(null, null, null, sortBy, ascending, 0, allReminders.size()));
 
         // then
         assertThat(result).isNotNull();
@@ -463,7 +487,8 @@ class ReminderServiceImplTest {
     void givenNullSortParam_whenFindAllCalledWithNullSortParam_thenThrowsException() {
         // when  then
         assertThrows(IllegalArgumentException.class,
-                () -> reminderService.findAll(1L, null, null, null, null, true, 0, 5));
+                () -> reminderService.findAll(1L,
+                        new SearchRequest(null, null, null, null, true, 0, 5)));
 
     }
 
@@ -474,7 +499,8 @@ class ReminderServiceImplTest {
         String invalidParam = "invalid";
         // when  then
         assertThrows(IllegalArgumentException.class,
-                () -> reminderService.findAll(1L, null, null, null, invalidParam, true, 0, 5));
+                () -> reminderService.findAll(1L,
+                        new SearchRequest(null, null, null, invalidParam, true, 0, 5)));
     }
 
     @Test
@@ -500,7 +526,8 @@ class ReminderServiceImplTest {
                             .orElseThrow();
                 });
         // when
-        Page<ReminderResponse> result = reminderService.findAll(1L, null, null, null, sortBy, ascending, 0, allReminders.size());
+        Page<ReminderResponse> result = reminderService.findAll(1L,
+                new SearchRequest(null, null, null, sortBy, ascending, 0, allReminders.size()));
 
         // then
         assertThat(result).isNotNull();
@@ -519,7 +546,15 @@ class ReminderServiceImplTest {
         int invalidPageNumber = -5;
         // when  then
         assertThrows(IllegalArgumentException.class,
-                () -> reminderService.findAll(1L, null, null, null, "remind", true, invalidPageNumber, 5));
+                () -> reminderService.findAll(1L,
+                        new SearchRequest(
+                                null,
+                                null,
+                                null,
+                                "remind",
+                                true,
+                                invalidPageNumber,
+                                5)));
 
     }
 
@@ -552,7 +587,8 @@ class ReminderServiceImplTest {
                             .orElseThrow();
                 });
         // when
-        Page<ReminderResponse> result = reminderService.findAll(1L, sortBy, null, null, sortBy, ascending, page, size);
+        Page<ReminderResponse> result = reminderService.findAll(1L,
+                new SearchRequest(sortBy, null, null, sortBy, ascending, page, size));
 
         // then
         assertThat(result).isNotNull();
@@ -573,6 +609,7 @@ class ReminderServiceImplTest {
         int invalidSize = -10;
         // when  then
         assertThrows(IllegalArgumentException.class,
-                () -> reminderService.findAll(1L, null, null, null, "remind", true, 0, invalidSize));
+                () -> reminderService.findAll(1L,
+                        new SearchRequest(null, null, null, "remind", true, 0, invalidSize)));
     }
 }

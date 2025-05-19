@@ -8,6 +8,7 @@ import ru.admiralpashtet.reminder.entity.User;
 import ru.admiralpashtet.reminder.exception.UserNotFoundException;
 import ru.admiralpashtet.reminder.service.UserService;
 import ru.admiralpashtet.reminder.telegram.sender.TelegramMessageSender;
+import ru.admiralpashtet.reminder.util.Message;
 
 @Component
 @AllArgsConstructor
@@ -35,7 +36,7 @@ public class DefaultCommandHandler implements BotCommand {
         if (user != null) {
             SendMessage message = SendMessage.builder()
                     .chatId(chatId)
-                    .text("The bot only supports the /start command.")
+                    .text(Message.TG_BOT_SUPPORTS_ONLY_START_COMMAND.get())
                     .build();
             telegramMessageSender.reply(message);
         }
@@ -47,7 +48,7 @@ public class DefaultCommandHandler implements BotCommand {
         } catch (UserNotFoundException ex) {
             SendMessage message = SendMessage.builder()
                     .chatId(chatId)
-                    .text(String.format("User with telegram @%s was not found in system.", username))
+                    .text(Message.USER_WITH_CURRENT_TG_NOT_FOUND.format(username))
                     .build();
             telegramMessageSender.reply(message);
         }
