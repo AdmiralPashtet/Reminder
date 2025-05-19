@@ -7,6 +7,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import ru.admiralpashtet.reminder.dto.request.ReminderRequest;
+import ru.admiralpashtet.reminder.dto.request.SearchRequest;
 import ru.admiralpashtet.reminder.dto.response.ReminderResponse;
 import ru.admiralpashtet.reminder.entity.Reminder;
 import ru.admiralpashtet.reminder.exception.AccessDeniedException;
@@ -17,9 +18,7 @@ import ru.admiralpashtet.reminder.repository.specification.ReminderSpecification
 import ru.admiralpashtet.reminder.service.ReminderService;
 import ru.admiralpashtet.reminder.sort.SortCondition;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -39,23 +38,22 @@ public class ReminderServiceImpl implements ReminderService {
     }
 
     @Override
-    public Page<ReminderResponse> findAll(Long userId, String searchQuery, LocalDate date, LocalTime time, String sortBy,
-                                          boolean ascending, int page, int size) {
-        if (sortBy == null || Arrays.stream(SortCondition.values())
-                .noneMatch(sortCondition -> sortBy.equalsIgnoreCase(sortCondition.toString()))) {
-            throw new IllegalArgumentException("Illegal argument in \"sortBy\" URI parameter. Expected: {title, description, remind}");
+    public Page<ReminderResponse> findAll(Long userId, SearchRequest searchRequest) {
+        if (searchRequest.sortBy() == null || Arrays.stream(SortCondition.values())
+                .noneMatch(sortCondition -> searchRequest.sortBy().equalsIgnoreCase(sortCondition.toString()))) {
+            throw new IllegalArgumentException("Illegal argument in sortBy field. Expected: {title, description, remind}");
         }
 
         Specification<Reminder> specification = Specification.where(ReminderSpecification.hasUserId(userId));
-        if (searchQuery != null) {
-            specification = specification.and(ReminderSpecification.hasKeywords(searchQuery));
+        if (searchRequest.searchQuery() != null) {
+            specification = specification.and(ReminderSpecification.hasKeywords(searchRequest.searchQuery()));
         }
-        if (date != null || time != null) {
-            specification = specification.and(ReminderSpecification.hasDateAndTime(date, time));
+        if (searchRequest.date() != null || searchRequest.time() != null) {
+            specification = specification.and(ReminderSpecification.hasDateAndTime(searchRequest.date(), searchRequest.time()));
         }
 
-        Sort sort = Sort.by(ascending ? Sort.Direction.ASC : Sort.Direction.DESC, sortBy);
-        PageRequest pageRequest = PageRequest.of(page, size, sort);
+        Sort sort = Sort.by(searchRequest.ascending() ? Sort.Direction.ASC : Sort.Direction.DESC, searchRequest.sortBy());
+        PageRequest pageRequest = PageRequest.of(searchRequest.page(), searchRequest.size(), sort);
 
         return reminderRepository.findAll(specification, pageRequest).map(reminderMapper::toResponseDTO);
     }
