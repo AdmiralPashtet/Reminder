@@ -10,6 +10,7 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 import ru.admiralpashtet.reminder.entity.Reminder;
+import ru.admiralpashtet.reminder.util.Message;
 
 @Slf4j
 @Component
@@ -42,7 +43,7 @@ public class TelegramMessageSender {
         SendMessage message = SendMessage.builder()
                 .chatId(chatId)
                 .parseMode(ParseMode.MARKDOWNV2)
-                .text(String.format("*%s*\n%s", reminder.getTitle(), reminder.getDescription()))
+                .text(Message.REMINDER_DEFAULT_TEMPLATE.format(reminder.getTitle(), reminder.getDescription()))
                 .build();
         try {
             telegramClient.execute(message);
