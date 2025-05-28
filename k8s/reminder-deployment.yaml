@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: reminder
+  labels:
+    app: reminder
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: reminder
+  template:
+    metadata:
+      labels:
+        app: reminder
+    spec:
+      containers:
+        - name: reminder
+          image: admiralpashtet/reminderproject:0.0.1
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: reminder-config
+            - secretRef:
+                name: reminder-secrets
+          imagePullPolicy: IfNotPresent
+          readinessProbe: # Проба «готовности» — проверяет, когда контейнер начинает принимать трафик
+            tcpSocket: # Тип пробы: TCP-соединение вместо HTTP-запроса
+              port: 8080                       # Порт внутри контейнера, к которому kubelet будет пытаться подключиться
+            initialDelaySeconds: 10            # Задержка перед первой проверкой после старта контейнера (секунд)
+            periodSeconds: 5                   # Интервал между последующими проверками (секунд)
+
+          livenessProbe: # Проба «жизнеспособности» — проверяет, жив ли контейнер или завис
+            tcpSocket: # Здесь тоже TCP-подключение
+              port: 8080                       # Если соединение не открыто, контейнер перезапустят
+            initialDelaySeconds: 30            # Ждём подольше, чтобы приложение точно успело подняться
+            periodSeconds: 10                  # Интервал между последующими проверками (секунд)

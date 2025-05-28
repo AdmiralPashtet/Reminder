@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: StatefulSet   # Аналог Deployment, но с памятью. Для подов с постоянными данными, нуждающимися в своих томах и имени (как volume в docker).
+metadata:
+  name: reminder-postgres
+  labels:
+    app: reminder-postgres
+
+spec:
+  serviceName: "reminder-postgres"
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: reminder-postgres        # Лейбл, по которому выбираются поды, управляемые этим StatefulSet'ом
+
+  template: # Шаблон пода (как в Deployment)
+    metadata:
+      labels:
+        app: reminder-postgres      # Лейбл, чтобы под соответствовал selector’у выше
+
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:17.4
+          ports:
+            - containerPort: 5432   # Открываем порт PostgreSQL внутри контейнера
+          env:
+            - name: TZ
+              valueFrom:
+                configMapKeyRef:
+                  name: reminder-config
+                  key: TZ
+            - name: PGTZ
+              valueFrom:
+                configMapKeyRef:
+                  name: reminder-config
+                  key: TZ
+            - name: POSTGRES_DB
+              value: reminder-db
+            - name: POSTGRES_USER
+              value: postgres
+            - name: POSTGRES_PASSWORD
+              value: postgres
+
+          volumeMounts: # Монтируем том внутрь контейнера — сюда PostgreSQL будет сохранять данные
+            - mountPath: /var/lib/postgresql/data
+              name: pgdata
+
+  volumeClaimTemplates: # Здесь описываем том, который будет создаваться автоматически для каждого пода
+    - metadata:
+        name: pgdata           # Имя volume, которое использовано выше в volumeMounts
+      spec:
+        accessModes:
+          - ReadWriteOnce      # Режим доступа: один под может читать и писать
+        resources:
+          requests:
+            storage: 10Gi      # Размер хранилища: 10 гигабайт

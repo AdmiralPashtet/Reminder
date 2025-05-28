@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: reminder-postgres
+spec:
+  selector:
+    app: reminder-postgres        # Связываем с меткой пода
+  ports:
+    - name: postgres
+      port: 5432                  # Порт внутри кластера - сюда стучат клиенты кластерной сети
+      targetPort: 5432            # Порт контейнера - сервис пробрасывает запросы на этот порт внутри пода
+  type: ClusterIP
+  

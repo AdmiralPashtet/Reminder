@@ -1,0 +1,18 @@
+#  ConfigMap хранит некритичные параметры конфигурации (энвы)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: reminder-config
+data:
+  TZ: "Europe/Moscow"
+  SPRING_PROFILES_ACTIVE: "docker"
+
+
+# Короче, если мы хотим создать прям секрет, то нужно делать его отдельно. Можем использовать .env файл.
+# Проблема в том, что плейсхолдеры кубером не воспринимаются, поэтому создаётся секрет только командой ниже:
+#
+#  kubectl create secret generic reminder-secrets \
+#  --from-env-file=.env \
+#  --namespace=default
+#
+# С пустым stringData нет смысла
